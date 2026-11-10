@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">LiveSport77 TV</string>
+    <string name="football">Bóng đá</string>
+    <string name="basketball">Bóng rổ</string>
+    <string name="tennis">Quần vợt</string>
+    <string name="live_matches">Đang diễn ra</string>
+    <string name="scheduled">Sắp đá</string>
+    <string name="finished">Đã kết thúc</string>
+</resources>
+

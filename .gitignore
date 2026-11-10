@@ -1,0 +1,25 @@
+# Built-in Android & Gradle ignores
+*.iml
+.gradle/
+/local.properties
+/.idea/
+.DS_Store
+/build/
+/app/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.dex
+*.class
+
+# Memory dumps and logs
+*.hprof
+*.log
+
+# Virtual Android TV artifacts
+/.android/
+/.kotlin/
+
+# Output release directory (we keep docs and source code)
+/app/build/outputs/
+

@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LiveSport77 - Android TV UI Mockup</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @keyframes pulse-live {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.92); }
+    }
+    .live-pulse {
+      animation: pulse-live 1.6s infinite ease-in-out;
+    }
+    .tv-focused {
+      border-color: #FFD700 !important;
+      box-shadow: 0 0 22px rgba(255, 215, 0, 0.5), inset 0 0 10px rgba(255, 215, 0, 0.15) !important;
+      transform: scale(1.03) !important;
+      background: #1E293B !important;
+      z-index: 20;
+    }
+    .tv-tab-focused {
+      border-color: #FFD700 !important;
+      background: #FFD700 !important;
+      color: #0B0F17 !important;
+      box-shadow: 0 0 15px rgba(255, 215, 0, 0.5) !important;
+    }
+    ::-webkit-scrollbar {
+      display: none;
+    }
+  </style>
+</head>
+<body class="bg-[#070A0F] text-[#F8FAFC] antialiased m-0 p-4 select-none font-sans overflow-hidden min-h-screen flex flex-col justify-between">
+
+  <!-- TOP BAR: TV SAFE AREA & HEADER -->
+  <header class="w-full flex items-center justify-between px-8 py-3 bg-[#0B0F17]/90 rounded-2xl border border-slate-800/80 mb-3 shadow-lg">
+    <div class="flex items-center space-x-4">
+      <div class="flex items-center space-x-2">
+        <span class="text-2xl font-black tracking-wider text-amber-400">LIVE<span class="text-white">SPORT</span><span class="text-emerald-400">77</span></span>
+        <span class="bg-red-600/90 text-white text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center gap-1">
+          <span class="w-2 h-2 rounded-full bg-white live-pulse"></span> TV
+        </span>
+      </div>
+      <div class="h-6 w-px bg-slate-700 mx-2"></div>
+      <!-- SPORT TABS -->
+      <nav id="sport-tabs" class="flex items-center space-x-2">
+        <button id="tab-0" class="tv-tab px-4 py-1.5 rounded-xl text-sm font-semibold transition-all duration-150 border border-transparent tv-tab-focused">
+          ⚽ Bóng đá
+        </button>
+        <button id="tab-1" class="tv-tab px-4 py-1.5 rounded-xl text-sm font-semibold transition-all duration-150 border border-slate-700/60 text-slate-300 hover:text-white">
+          🏀 Bóng rổ
+        </button>
+        <button id="tab-2" class="tv-tab px-4 py-1.5 rounded-xl text-sm font-semibold transition-all duration-150 border border-slate-700/60 text-slate-300 hover:text-white">
+          🎾 Quần vợt
+        </button>
+      </nav>
+    </div>
+
+    <!-- CLOCK & REMOTE HINT -->
+    <div class="flex items-center space-x-5 text-sm text-slate-300">
+      <div class="hidden md:flex items-center gap-2 bg-slate-800/80 px-3 py-1 rounded-lg border border-slate-700/50 text-xs text-amber-300">
+        <span>🎮 D-Pad Remote: Bấm phím mũi tên [↑ ↓ ← →] và phím [Enter]</span>
+      </div>
+      <div id="tv-clock" class="font-mono text-base font-bold text-white tracking-widest">
+        10:45
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN MASTER-DETAIL CONTENT (16:9 TV WORKSPACE) -->
+  <main class="w-full flex-1 grid grid-cols-12 gap-4 overflow-hidden relative">
+
+    <!-- LEFT COLUMN: MATCH LIST RAIL (38%) -->
+    <section class="col-span-5 bg-[#0B0F17]/95 rounded-2xl border border-slate-800/90 p-4 flex flex-col overflow-hidden shadow-2xl">
+      <div class="flex items-center justify-between pb-3 mb-2 border-b border-slate-800">
+        <div class="flex items-center gap-2">
+          <span class="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+          <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Danh Sách Trận Đấu</span>
+        </div>
+        <span class="text-xs bg-slate-800 text-amber-400 px-2 py-0.5 rounded-md font-medium">3 trận đang đá</span>
+      </div>
+
+      <!-- SCROLLABLE MATCH LIST -->
+      <div id="match-rail" class="flex-1 overflow-y-auto space-y-2.5 pr-1">
+        <!-- Match 0: Arsenal vs Chelsea -->
+        <div id="match-card-0" data-index="0" class="match-card tv-focused p-3 rounded-xl border border-slate-700/60 bg-[#161F2E] cursor-pointer transition-all duration-200">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+            <span class="font-semibold text-amber-400/90">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</span>
+            <span class="bg-red-500/20 text-red-400 font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500 live-pulse"></span> 78' LIVE
+            </span>
+          </div>
+          <div class="flex items-center justify-between py-1">
+            <div class="space-y-1 font-semibold text-sm">
+              <div class="flex items-center gap-2"><span>🔴</span> <span>Arsenal</span></div>
+              <div class="flex items-center gap-2"><span>🔵</span> <span>Chelsea</span></div>
+            </div>
+            <div class="text-right font-black text-xl text-amber-400 font-mono tracking-wider">
+              <div>2</div>
+              <div>1</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Match 1: Real Madrid vs Barcelona -->
+        <div id="match-card-1" data-index="1" class="match-card p-3 rounded-xl border border-slate-700/60 bg-[#161F2E] cursor-pointer transition-all duration-200">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+            <span class="font-semibold text-slate-300">🇪🇸 La Liga</span>
+            <span class="bg-slate-700/60 text-slate-300 font-bold px-1.5 py-0.5 rounded">FT (Kết thúc)</span>
+          </div>
+          <div class="flex items-center justify-between py-1">
+            <div class="space-y-1 font-semibold text-sm">
+              <div class="flex items-center gap-2"><span>⚪</span> <span>Real Madrid</span></div>
+              <div class="flex items-center gap-2"><span>🔴🔵</span> <span>Barcelona</span></div>
+            </div>
+            <div class="text-right font-black text-xl text-slate-200 font-mono tracking-wider">
+              <div>1</div>
+              <div>0</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Match 2: Man City vs Liverpool -->
+        <div id="match-card-2" data-index="2" class="match-card p-3 rounded-xl border border-slate-700/60 bg-[#161F2E] cursor-pointer transition-all duration-200">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+            <span class="font-semibold text-slate-300">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League</span>
+            <span class="bg-blue-500/20 text-blue-400 font-bold px-1.5 py-0.5 rounded">22:30 Hôm nay</span>
+          </div>
+          <div class="flex items-center justify-between py-1">
+            <div class="space-y-1 font-semibold text-sm">
+              <div class="flex items-center gap-2"><span>🩵</span> <span>Manchester City</span></div>
+              <div class="flex items-center gap-2"><span>🔴</span> <span>Liverpool</span></div>
+            </div>
+            <div class="text-right font-bold text-sm text-slate-400 font-mono">
+              - vs -
+            </div>
+          </div>
+        </div>
+
+        <!-- Match 3: LA Lakers vs Warriors (NBA) -->
+        <div id="match-card-3" data-index="3" class="match-card p-3 rounded-xl border border-slate-700/60 bg-[#161F2E] cursor-pointer transition-all duration-200">
+          <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+            <span class="font-semibold text-purple-400">🏀 NBA - Regular Season</span>
+            <span class="bg-red-500/20 text-red-400 font-bold px-1.5 py-0.5 rounded flex items-center gap-1">
+              <span class="w-1.5 h-1.5 rounded-full bg-red-500 live-pulse"></span> Q4 02:15
+            </span>
+          </div>
+          <div class="flex items-center justify-between py-1">
+            <div class="space-y-1 font-semibold text-sm">
+              <div class="flex items-center gap-2"><span>🟡🟣</span> <span>Lakers</span></div>
+              <div class="flex items-center gap-2"><span>🔵🟡</span> <span>Warriors</span></div>
+            </div>
+            <div class="text-right font-black text-xl text-amber-400 font-mono tracking-wider">
+              <div>104</div>
+              <div>99</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT COLUMN: MATCH DETAIL PANEL (62%) -->
+    <section class="col-span-7 bg-[#0B0F17]/95 rounded-2xl border border-slate-800/90 p-5 flex flex-col justify-between overflow-hidden shadow-2xl relative">
+      
+      <!-- HEADER SCOREBOARD -->
+      <div id="detail-scoreboard" class="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 rounded-xl p-4 border border-slate-700/80 mb-4 shadow-inner">
+        <div class="flex items-center justify-between text-xs text-slate-400 mb-2">
+          <span id="detail-league" class="font-semibold text-amber-400">Premier League - Vòng 11</span>
+          <span id="detail-status" class="bg-red-600 text-white font-bold px-2 py-0.5 rounded-full text-[11px] flex items-center gap-1.5">
+            <span class="w-2 h-2 rounded-full bg-white live-pulse"></span> 78' PHÚT THI ĐẤU
+          </span>
+        </div>
+
+        <!-- TEAMS & BIG SCORE -->
+        <div class="grid grid-cols-7 items-center text-center my-2">
+          <div class="col-span-3 flex flex-col items-center">
+            <div id="detail-home-logo" class="w-14 h-14 rounded-full bg-red-600/20 border-2 border-red-500 flex items-center justify-center text-2xl shadow-lg">🔴</div>
+            <h3 id="detail-home-name" class="font-bold text-lg text-white mt-1">Arsenal</h3>
+            <span class="text-xs text-slate-400">Chủ nhà</span>
+          </div>
+          
+          <div class="col-span-1 flex flex-col items-center justify-center">
+            <div id="detail-score" class="text-4xl font-black text-amber-400 font-mono tracking-widest drop-shadow-md">
+              2 - 1
+            </div>
+            <span class="text-[11px] text-slate-400 mt-0.5">Hiệp 2</span>
+          </div>
+
+          <div class="col-span-3 flex flex-col items-center">
+            <div id="detail-away-logo" class="w-14 h-14 rounded-full bg-blue-600/20 border-2 border-blue-500 flex items-center justify-center text-2xl shadow-lg">🔵</div>
+            <h3 id="detail-away-name" class="font-bold text-lg text-white mt-1">Chelsea</h3>
+            <span class="text-xs text-slate-400">Đội khách</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- MATCH EVENTS & TIMELINE -->
+      <div class="flex-1 grid grid-cols-2 gap-3 overflow-hidden mb-3">
+        
+        <!-- TIMELINE BOX -->
+        <div class="bg-[#121926] p-3.5 rounded-xl border border-slate-800 flex flex-col overflow-hidden">
+          <h4 class="text-xs font-bold text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <span>⏱️</span> Diễn Biến Bàn Thắng & Thẻ
+          </h4>
+          <div id="detail-timeline" class="space-y-2 overflow-y-auto pr-1 text-xs text-slate-300">
+            <div class="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/40">
+              <span class="font-bold text-amber-300">⚽ 23'</span>
+              <span class="font-medium">Bukayo Saka (Arsenal)</span>
+              <span class="text-[10px] text-slate-400">1 - 0</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/40">
+              <span class="font-bold text-amber-300">⚽ 55'</span>
+              <span class="font-medium">Martin Ødegaard (Arsenal)</span>
+              <span class="text-[10px] text-slate-400">2 - 0</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/40">
+              <span class="font-bold text-red-400">⚽ 68'</span>
+              <span class="font-medium">Cole Palmer (Pen - Chelsea)</span>
+              <span class="text-[10px] text-slate-400">2 - 1</span>
+            </div>
+            <div class="flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/40">
+              <span class="font-bold text-yellow-400">🟨 72'</span>
+              <span class="font-medium">Moisés Caicedo (Thẻ vàng)</span>
+              <span class="text-[10px] text-slate-400">Foul</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- STATS COMPARISON BOX -->
+        <div class="bg-[#121926] p-3.5 rounded-xl border border-slate-800 flex flex-col justify-between">
+          <h4 class="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+            <span>📊</span> Thống Kê Trận Đấu
+          </h4>
+          
+          <div class="space-y-3 text-xs">
+            <div>
+              <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <span id="stat-poss-h">58%</span>
+                <span class="text-slate-400 text-[11px]">Kiểm soát bóng</span>
+                <span id="stat-poss-a">42%</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-700 flex overflow-hidden">
+                <div id="stat-bar-poss" class="bg-red-500 h-full" style="width: 58%"></div>
+                <div class="bg-blue-500 h-full flex-1"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <span id="stat-shots-h">6</span>
+                <span class="text-slate-400 text-[11px]">Sút trúng đích</span>
+                <span id="stat-shots-a">3</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-700 flex overflow-hidden">
+                <div class="bg-amber-400 h-full" style="width: 66%"></div>
+                <div class="bg-blue-400 h-full flex-1"></div>
+              </div>
+            </div>
+
+            <div>
+              <div class="flex justify-between text-slate-300 font-semibold mb-1">
+                <span id="stat-corners-h">5</span>
+                <span class="text-slate-400 text-[11px]">Phạt góc</span>
+                <span id="stat-corners-a">2</span>
+              </div>
+              <div class="w-full h-2 rounded-full bg-slate-700 flex overflow-hidden">
+                <div class="bg-emerald-400 h-full" style="width: 71%"></div>
+                <div class="bg-slate-500 h-full flex-1"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="mt-2 pt-2 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+            <span>👥 Đội hình: 4-3-3 vs 4-2-3-1</span>
+            <button id="btn-fullscreen" class="bg-amber-400 hover:bg-amber-300 text-slate-950 font-bold px-3 py-1 rounded-lg text-xs transition">
+              Bấm [OK] Phóng To
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ON-SCREEN TV REMOTE CONTROLLER -->
+  <aside class="fixed bottom-6 right-6 bg-slate-900/95 border-2 border-amber-400/80 rounded-2xl p-3 shadow-2xl backdrop-blur-md z-30 flex flex-col items-center gap-1.5 w-44">
+    <div class="text-[11px] font-bold text-amber-300 uppercase tracking-wider mb-1 flex items-center gap-1">
+      <span>🎮</span> Remote TV
+    </div>
+    <div class="grid grid-cols-3 gap-1 w-full text-center">
+      <div></div>
+      <button id="remote-up" class="bg-slate-800 hover:bg-amber-400 hover:text-black text-white font-bold p-2 rounded-lg border border-slate-700 transition active:scale-95 text-xs">▲</button>
+      <div></div>
+      
+      <button id="remote-left" class="bg-slate-800 hover:bg-amber-400 hover:text-black text-white font-bold p-2 rounded-lg border border-slate-700 transition active:scale-95 text-xs">◀</button>
+      <button id="remote-ok" class="bg-amber-500 hover:bg-amber-400 text-black font-black p-2 rounded-lg transition active:scale-90 text-xs shadow-md">OK</button>
+      <button id="remote-right" class="bg-slate-800 hover:bg-amber-400 hover:text-black text-white font-bold p-2 rounded-lg border border-slate-700 transition active:scale-95 text-xs">▶</button>
+      
+      <div></div>
+      <button id="remote-down" class="bg-slate-800 hover:bg-amber-400 hover:text-black text-white font-bold p-2 rounded-lg border border-slate-700 transition active:scale-95 text-xs">▼</button>
+      <button id="remote-back" class="bg-slate-700 hover:bg-red-500 text-white font-bold p-2 rounded-lg border border-slate-600 transition active:scale-95 text-[10px]">Back</button>
+    </div>
+    <span class="text-[9px] text-slate-400 text-center mt-1">Hoặc dùng bàn phím máy tính</span>
+  </aside>
+
+  <!-- FULLSCREEN BIG SCOREBOARD MODAL -->
+  <div id="fullscreen-modal" class="hidden fixed inset-0 bg-[#070A0F]/98 z-50 flex flex-col items-center justify-center p-8 backdrop-blur-xl">
+    <div class="w-full max-w-4xl bg-slate-900 border-2 border-amber-400 rounded-3xl p-10 flex flex-col items-center text-center shadow-2xl relative">
+      <span class="bg-red-600 text-white font-bold px-4 py-1 rounded-full text-sm mb-4 live-pulse">🔴 78' ĐANG DIỄN RA TRỰC TIẾP</span>
+      <h2 id="fs-league" class="text-amber-400 font-bold text-lg mb-4">🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League - Super Sunday</h2>
+      
+      <div class="flex items-center justify-around w-full my-6">
+        <div class="flex flex-col items-center">
+          <div class="text-6xl mb-2">🔴</div>
+          <h1 id="fs-home" class="text-3xl font-black text-white">Arsenal</h1>
+        </div>
+        <div id="fs-score" class="text-7xl font-black text-amber-400 font-mono tracking-widest bg-black/40 px-8 py-3 rounded-2xl border border-slate-700">
+          2 - 1
+        </div>
+        <div class="flex flex-col items-center">
+          <div class="text-6xl mb-2">🔵</div>
+          <h1 id="fs-away" class="text-3xl font-black text-white">Chelsea</h1>
+        </div>
+      </div>
+
+      <div class="text-slate-300 text-base max-w-xl mx-auto space-y-1 mb-6">
+        <p>⚽ 23' Bukayo Saka | ⚽ 55' Martin Ødegaard | ⚽ 68' Cole Palmer (Pen)</p>
+      </div>
+
+      <button id="btn-close-fs" class="bg-slate-800 hover:bg-slate-700 text-white px-6 py-2 rounded-xl text-sm font-semibold border border-slate-600">
+        Bấm [Back / Esc] để quay lại màn hình chính
+      </button>
+    </div>
+  </div>
+
+  <script>
+    const matches = [
+      {
+        id: 0,
+        league: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League - Vòng 11",
+        status: "78' LIVE",
+        statusBg: "bg-red-600",
+        home: "Arsenal",
+        homeLogo: "🔴",
+        away: "Chelsea",
+        awayLogo: "🔵",
+        score: "2 - 1",
+        timeline: [
+          { time: "23'", text: "Bukayo Saka (Arsenal)", type: "goal", score: "1 - 0" },
+          { time: "55'", text: "Martin Ødegaard (Arsenal)", type: "goal", score: "2 - 0" },
+          { time: "68'", text: "Cole Palmer (Pen - Chelsea)", type: "goal", score: "2 - 1" },
+          { time: "72'", text: "Moisés Caicedo (Thẻ vàng)", type: "card", score: "Foul" }
+        ],
+        stats: { possHome: 58, possAway: 42, shotsHome: 6, shotsAway: 3, cornersHome: 5, cornersAway: 2 }
+      },
+      {
+        id: 1,
+        league: "🇪🇸 La Liga - El Clásico",
+        status: "FT (Đã xong)",
+        statusBg: "bg-slate-700",
+        home: "Real Madrid",
+        homeLogo: "⚪",
+        away: "Barcelona",
+        awayLogo: "🔴🔵",
+        score: "1 - 0",
+        timeline: [
+          { time: "34'", text: "Jude Bellingham (Real Madrid)", type: "goal", score: "1 - 0" },
+          { time: "89'", text: "Thibaut Courtois (Cứu thua)", type: "card", score: "Save" }
+        ],
+        stats: { possHome: 46, possAway: 54, shotsHome: 4, shotsAway: 5, cornersHome: 3, cornersAway: 6 }
+      },
+      {
+        id: 2,
+        league: "🏴󠁧󠁢󠁥󠁮󠁧󠁿 Premier League - Super Match",
+        status: "22:30 Sắp diễn ra",
+        statusBg: "bg-blue-600",
+        home: "Manchester City",
+        homeLogo: "🩵",
+        away: "Liverpool",
+        awayLogo: "🔴",
+        score: "- vs -",
+        timeline: [
+          { time: "22:30", text: "Trận đấu chuẩn bị bắt đầu tại Etihad", type: "info", score: "--" }
+        ],
+        stats: { possHome: 50, possAway: 50, shotsHome: 0, shotsAway: 0, cornersHome: 0, cornersAway: 0 }
+      },
+      {
+        id: 3,
+        league: "🏀 NBA - Regular Season",
+        status: "Q4 02:15 LIVE",
+        statusBg: "bg-red-600",
+        home: "Lakers",
+        homeLogo: "🟡🟣",
+        away: "Warriors",
+        awayLogo: "🔵🟡",
+        score: "104 - 99",
+        timeline: [
+          { time: "Q4 02:15", text: "LeBron James 3-pt Jump Shot", type: "goal", score: "104 - 99" },
+          { time: "Q4 02:40", text: "Stephen Curry Step Back 3pt", type: "goal", score: "101 - 99" }
+        ],
+        stats: { possHome: 52, possAway: 48, shotsHome: 12, shotsAway: 10, cornersHome: 45, cornersAway: 42 }
+      }
+    ];
+
+    let currentMatchIndex = 0;
+    let currentTab = 0;
+    let isFullscreen = false;
+
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('tv-clock').textContent = now.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    function renderMatchDetail(index) {
+      const match = matches[index];
+      if (!match) return;
+
+      document.getElementById('detail-league').textContent = match.league;
+      document.getElementById('detail-status').textContent = match.status;
+      document.getElementById('detail-status').className = `${match.statusBg} text-white font-bold px-2 py-0.5 rounded-full text-[11px] flex items-center gap-1.5`;
+
+      document.getElementById('detail-home-name').textContent = match.home;
+      document.getElementById('detail-home-logo').textContent = match.homeLogo;
+      document.getElementById('detail-away-name').textContent = match.away;
+      document.getElementById('detail-away-logo').textContent = match.awayLogo;
+      document.getElementById('detail-score').textContent = match.score;
+
+      document.getElementById('stat-poss-h').textContent = match.stats.possHome + '%';
+      document.getElementById('stat-poss-a').textContent = match.stats.possAway + '%';
+      document.getElementById('stat-bar-poss').style.width = match.stats.possHome + '%';
+      document.getElementById('stat-shots-h').textContent = match.stats.shotsHome;
+      document.getElementById('stat-shots-a').textContent = match.stats.shotsAway;
+      document.getElementById('stat-corners-h').textContent = match.stats.cornersHome;
+      document.getElementById('stat-corners-a').textContent = match.stats.cornersAway;
+
+      const timelineBox = document.getElementById('detail-timeline');
+      timelineBox.innerHTML = '';
+      match.timeline.forEach(item => {
+        const row = document.createElement('div');
+        row.className = "flex items-center justify-between bg-slate-800/50 p-2 rounded border border-slate-700/40 text-xs";
+        row.innerHTML = `<span class="font-bold text-amber-300">⚽ ${item.time}</span>
+                         <span class="font-medium text-slate-200">${item.text}</span>
+                         <span class="text-[10px] text-slate-400 font-mono">${item.score}</span>`;
+        timelineBox.appendChild(row);
+      });
+
+      document.getElementById('fs-league').textContent = match.league;
+      document.getElementById('fs-home').textContent = match.home;
+      document.getElementById('fs-away').textContent = match.away;
+      document.getElementById('fs-score').textContent = match.score;
+    }
+
+    function setFocusIndex(index) {
+      if (index < 0 || index >= matches.length) return;
+      currentMatchIndex = index;
+
+      document.querySelectorAll('.match-card').forEach((card, i) => {
+        if (i === index) {
+          card.classList.add('tv-focused');
+          card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        } else {
+          card.classList.remove('tv-focused');
+        }
+      });
+
+      renderMatchDetail(index);
+    }
+
+    function handleDown() {
+      if (isFullscreen) return;
+      if (currentMatchIndex < matches.length - 1) {
+        setFocusIndex(currentMatchIndex + 1);
+      }
+    }
+
+    function handleUp() {
+      if (isFullscreen) return;
+      if (currentMatchIndex > 0) {
+        setFocusIndex(currentMatchIndex - 1);
+      }
+    }
+
+    function handleEnter() {
+      isFullscreen = true;
+      document.getElementById('fullscreen-modal').classList.remove('hidden');
+    }
+
+    function handleBack() {
+      if (isFullscreen) {
+        isFullscreen = false;
+        document.getElementById('fullscreen-modal').classList.add('hidden');
+      }
+    }
+
+    function handleRight() {
+      currentTab = (currentTab + 1) % 3;
+      updateTabs();
+    }
+
+    function handleLeft() {
+      currentTab = (currentTab - 1 + 3) % 3;
+      updateTabs();
+    }
+
+    function updateTabs() {
+      for (let i = 0; i < 3; i++) {
+        const tab = document.getElementById('tab-' + i);
+        if (i === currentTab) {
+          tab.classList.add('tv-tab-focused');
+          tab.classList.remove('text-slate-300');
+        } else {
+          tab.classList.remove('tv-tab-focused');
+          tab.classList.add('text-slate-300');
+        }
+      }
+    }
+
+    window.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowDown':
+          e.preventDefault();
+          handleDown();
+          break;
+        case 'ArrowUp':
+          e.preventDefault();
+          handleUp();
+          break;
+        case 'ArrowRight':
+          e.preventDefault();
+          handleRight();
+          break;
+        case 'ArrowLeft':
+          e.preventDefault();
+          handleLeft();
+          break;
+        case 'Enter':
+          e.preventDefault();
+          handleEnter();
+          break;
+        case 'Escape':
+        case 'Backspace':
+          e.preventDefault();
+          handleBack();
+          break;
+      }
+    });
+
+    document.getElementById('remote-up').addEventListener('click', handleUp);
+    document.getElementById('remote-down').addEventListener('click', handleDown);
+    document.getElementById('remote-left').addEventListener('click', handleLeft);
+    document.getElementById('remote-right').addEventListener('click', handleRight);
+    document.getElementById('remote-ok').addEventListener('click', handleEnter);
+    document.getElementById('remote-back').addEventListener('click', handleBack);
+    document.getElementById('btn-fullscreen').addEventListener('click', handleEnter);
+    document.getElementById('btn-close-fs').addEventListener('click', handleBack);
+
+    document.querySelectorAll('.match-card').forEach((card, i) => {
+      card.addEventListener('click', () => setFocusIndex(i));
+    });
+
+    setFocusIndex(0);
+  </script>
+</body>
+</html>
+
