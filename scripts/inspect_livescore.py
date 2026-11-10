@@ -30,3 +30,4 @@ for ep in endpoints:
                     print(f"    Match: {e.get('T1', [{}])[0].get('Nm')} vs {e.get('T2', [{}])[0].get('Nm')} (Esd: {e.get('Esd')}, Eps: {e.get('Eps')})")
     except Exception as e:
         print(f"Error {ep}: {e}")
+
