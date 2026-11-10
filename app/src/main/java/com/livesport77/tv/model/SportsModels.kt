@@ -6,9 +6,11 @@ import androidx.compose.runtime.Immutable
  * Supported Sports in LiveSport77
  */
 enum class SportType(val id: String, val displayName: String, val icon: String) {
-    FOOTBALL("football", "Bóng đá", "⚽"),
-    BASKETBALL("basketball", "Bóng rổ", "🏀"),
-    TENNIS("tennis", "Quần vợt", "🎾")
+    FOOTBALL("football", "Football", "⚽"),
+    HOCKEY("hockey", "Hockey", "🏑"),
+    BASKETBALL("basketball", "Basketball", "🏀"),
+    TENNIS("tennis", "Tennis", "🎾"),
+    CRICKET("cricket", "Cricket", "🏏")
 }
 
 /**

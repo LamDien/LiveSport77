@@ -29,8 +29,10 @@ class LiveScoreApiService {
     suspend fun fetchMatches(sport: SportType, dateStr: String = ""): List<Match> = withContext(Dispatchers.IO) {
         val sportPath = when (sport) {
             SportType.FOOTBALL -> "soccer"
+            SportType.HOCKEY -> "hockey"
             SportType.BASKETBALL -> "basketball"
             SportType.TENNIS -> "tennis"
+            SportType.CRICKET -> "cricket"
         }
 
         val targetDate = if (dateStr.isNotEmpty()) {
@@ -79,8 +81,10 @@ class LiveScoreApiService {
     ): List<MatchEvent> = withContext(Dispatchers.IO) {
         val sportPath = when (sport) {
             SportType.FOOTBALL -> "soccer"
+            SportType.HOCKEY -> "hockey"
             SportType.BASKETBALL -> "basketball"
             SportType.TENNIS -> "tennis"
+            SportType.CRICKET -> "cricket"
         }
         val endpointUrl = "$baseUrl/scoreboard/$sportPath/$matchId"
 

@@ -40,6 +40,7 @@ fun MatchItemCard(
 ) {
     TvFocusCard(
         onClick = onSelect,
+        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 9.dp),
         modifier = modifier.fillMaxWidth()
     ) { isFocused ->
         LaunchedEffect(isFocused) {
@@ -49,26 +50,24 @@ fun MatchItemCard(
         }
 
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 12.dp, vertical = 10.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // 1. LEFT: STATUS / TIME
             Box(
-                modifier = Modifier.width(46.dp),
+                modifier = Modifier.width(44.dp),
                 contentAlignment = Alignment.CenterStart
             ) {
                 val statusColor = when (match.status) {
                     MatchStatus.LIVE -> TvLiveRed
-                    MatchStatus.FINISHED -> if (isFocused) TvFocusGold else TvTextPrimary
+                    MatchStatus.FINISHED -> if (isFocused) TvFocusGold else Color(0xFF94A3B8)
                     MatchStatus.SCHEDULED -> TvTextMuted
                     MatchStatus.POSTPONED -> Color(0xFFEF4444)
                 }
 
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(3.dp)
                 ) {
                     if (match.status == MatchStatus.LIVE) {
                         Box(
@@ -90,15 +89,15 @@ fun MatchItemCard(
                 }
             }
 
-            // VERTICAL SEPARATOR LINE
+            // VERTICAL SEPARATOR LINE (LEFT)
             Box(
                 modifier = Modifier
                     .width(1.dp)
                     .height(24.dp)
-                    .background(Color(0xFF262C3A))
+                    .background(Color(0xFF283144))
             )
 
-            Spacer(modifier = Modifier.width(10.dp))
+            Spacer(modifier = Modifier.width(8.dp))
 
             // 2. CENTER: TEAMS & SCORES
             Row(
@@ -136,12 +135,14 @@ fun MatchItemCard(
 
                 // Middle Score
                 Box(
-                    modifier = Modifier.width(46.dp),
+                    modifier = Modifier
+                        .padding(horizontal = 4.dp)
+                        .widthIn(min = 34.dp),
                     contentAlignment = Alignment.Center
                 ) {
                     if (match.status == MatchStatus.SCHEDULED) {
                         Text(
-                            text = "- vs -",
+                            text = "VS",
                             style = MaterialTheme.typography.titleMedium.copy(
                                 color = TvTextMuted,
                                 fontWeight = FontWeight.Bold,
@@ -152,7 +153,7 @@ fun MatchItemCard(
                         Text(
                             text = "${match.score.home} - ${match.score.away}",
                             style = MaterialTheme.typography.titleLarge.copy(
-                                color = if (match.status == MatchStatus.LIVE) TvFocusGold else Color.White,
+                                color = if (match.status == MatchStatus.LIVE) TvLiveRed else Color.White,
                                 fontWeight = FontWeight.Black,
                                 fontSize = 13.sp
                             )
@@ -191,6 +192,16 @@ fun MatchItemCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
+            // VERTICAL SEPARATOR LINE (RIGHT)
+            Box(
+                modifier = Modifier
+                    .width(1.dp)
+                    .height(24.dp)
+                    .background(Color(0xFF283144))
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
             // 3. RIGHT: STAR FAVORITE ICON
             Box(
                 modifier = Modifier
@@ -201,7 +212,7 @@ fun MatchItemCard(
                 Text(
                     text = if (isFavorite) "★" else "☆",
                     style = MaterialTheme.typography.titleMedium.copy(
-                        color = if (isFavorite) TvFocusGold else Color(0xFF475569),
+                        color = if (isFavorite) TvFocusGold else Color(0xFF64748B),
                         fontSize = 15.sp,
                         fontWeight = FontWeight.Bold
                     )
@@ -219,9 +230,9 @@ private fun TeamLogo(
 ) {
     Box(
         modifier = Modifier
-            .size(24.dp)
+            .size(22.dp)
             .clip(CircleShape)
-            .background(Color(0xFF262C3A)),
+            .background(Color(0xFF232A3B)),
         contentAlignment = Alignment.Center
     ) {
         if (!logoUrl.isNullOrEmpty()) {
@@ -233,11 +244,11 @@ private fun TeamLogo(
                 contentDescription = name,
                 contentScale = ContentScale.Fit,
                 modifier = Modifier
-                    .size(20.dp)
+                    .size(19.dp)
                     .clip(CircleShape)
             )
         } else {
-            Text(text = emoji, fontSize = 13.sp)
+            Text(text = emoji, fontSize = 12.sp)
         }
     }
 }
