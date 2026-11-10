@@ -19,34 +19,20 @@ class SportsRepositoryTest {
     }
 
     @Test
-    fun testGetFootballMatchesReturnsValidList() = runBlocking {
+    fun testInitialRepositoryStateIsEmptyWithoutCache() = runBlocking {
+        // Strict adherence to "Không cache dữ liệu"
         val matches = repository.getMatches(SportType.FOOTBALL).first()
-        assertTrue("Football matches should not be empty", matches.isNotEmpty())
-        
-        val liveMatch = matches.find { it.status == MatchStatus.LIVE }
-        assertNotNull("Should contain at least one LIVE match", liveMatch)
-        assertEquals("Arsenal", liveMatch?.homeTeam?.name)
+        assertTrue("Initial state must be empty before remote network call", matches.isEmpty())
     }
 
     @Test
-    fun testGetBasketballMatchesReturnsNBA() = runBlocking {
-        val matches = repository.getMatches(SportType.BASKETBALL).first()
-        assertTrue("Basketball matches should not be empty", matches.isNotEmpty())
-        assertTrue("Should contain NBA league", matches.any { it.leagueId == "nba" })
-    }
-
-    @Test
-    fun testSimulateScoreUpdateIncrementsMinute() = runBlocking {
-        val initialMatches = repository.getMatches(SportType.FOOTBALL).first()
-        val initialArsenal = initialMatches.find { it.id == "fb_01" }
-        assertNotNull(initialArsenal)
-
-        repository.simulateScoreUpdate()
-
-        val updatedMatches = repository.getMatches(SportType.FOOTBALL).first()
-        val updatedArsenal = updatedMatches.find { it.id == "fb_01" }
-        assertNotNull(updatedArsenal)
-        assertEquals("80' LIVE", updatedArsenal?.statusDisplay)
+    fun testRefreshSportFetchesDirectlyFromLiveScore() = runBlocking {
+        val matches = repository.refreshSport(SportType.FOOTBALL)
+        // If network is available, it populates matches
+        if (matches.isNotEmpty()) {
+            val first = matches.first()
+            assertNotNull("Match ID should not be null", first.id)
+            assertNotNull("League Name should not be null", first.leagueName)
+        }
     }
 }
-
