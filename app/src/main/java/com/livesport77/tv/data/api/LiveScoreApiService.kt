@@ -38,13 +38,14 @@ class LiveScoreApiService {
         val targetDate = if (dateStr.isNotEmpty()) {
             dateStr
         } else {
-            val utcFormat = SimpleDateFormat("yyyyMMdd", Locale.US).apply {
-                timeZone = TimeZone.getTimeZone("UTC")
+            val localFormat = SimpleDateFormat("yyyyMMdd", Locale.US).apply {
+                timeZone = TimeZone.getDefault()
             }
-            utcFormat.format(Date())
+            localFormat.format(Date())
         }
 
-        val endpointUrl = "$baseUrl/date/$sportPath/$targetDate/0.00"
+        val tzOffset = getTimezoneOffsetParam()
+        val endpointUrl = "$baseUrl/date/$sportPath/$targetDate/$tzOffset"
 
         try {
             val url = URL(endpointUrl)
@@ -68,6 +69,17 @@ class LiveScoreApiService {
         }
 
         return@withContext emptyList()
+    }
+
+    /**
+     * Compute device local timezone offset in hours formatted as %.2f (e.g. 7.00 for Vietnam UTC+7).
+     * LiveScore API requires this parameter to align with user's local day and broadcast schedule.
+     */
+    fun getTimezoneOffsetParam(): String {
+        val tz = TimeZone.getDefault()
+        val offsetMillis = tz.getOffset(System.currentTimeMillis())
+        val hours = offsetMillis / 3600000.0
+        return String.format(Locale.US, "%.2f", hours)
     }
 
     /**
@@ -212,17 +224,8 @@ class LiveScoreApiService {
             Log.e("LiveScoreApi", "Error parsing LiveScore JSON: ${e.message}", e)
         }
 
-        // Sort: LIVE matches first, then SCHEDULED, then FINISHED
-        return matches.sortedWith(
-            compareBy<Match> {
-                when (it.status) {
-                    MatchStatus.LIVE -> 0
-                    MatchStatus.SCHEDULED -> 1
-                    MatchStatus.FINISHED -> 2
-                    MatchStatus.POSTPONED -> 3
-                }
-            }
-        )
+        // Preserve LiveScore.com's natural broadcast stage order (FA Cup, LaLiga 2, etc.)
+        return matches
     }
 
     private fun parseIncidents(eventObj: JSONObject, homeId: String, awayId: String): List<MatchEvent> {
