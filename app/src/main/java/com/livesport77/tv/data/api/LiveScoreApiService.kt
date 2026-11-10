@@ -19,24 +19,30 @@ import java.util.*
 class LiveScoreApiService {
 
     private val baseUrl = "https://prod-cdn-public-api.lsmedia1.com/v1/api/app"
+    private val cdnImageBase = "https://lsm-static-prod.livescore.com/medium"
     private val userAgent = "Mozilla/5.0 (Linux; Android 14; Android TV) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
 
     /**
-     * Fetch all matches for the given sport today directly from LiveScore.com CDN.
+     * Fetch all matches for the given sport and date directly from LiveScore.com CDN.
+     * @param dateStr Date in format yyyyMMdd (e.g., 20261110). If empty, today (UTC) is used.
      */
-    suspend fun fetchMatches(sport: SportType): List<Match> = withContext(Dispatchers.IO) {
+    suspend fun fetchMatches(sport: SportType, dateStr: String = ""): List<Match> = withContext(Dispatchers.IO) {
         val sportPath = when (sport) {
             SportType.FOOTBALL -> "soccer"
             SportType.BASKETBALL -> "basketball"
             SportType.TENNIS -> "tennis"
         }
 
-        // LiveScore CDN partitions by UTC date
-        val utcFormat = SimpleDateFormat("yyyyMMdd", Locale.US).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
+        val targetDate = if (dateStr.isNotEmpty()) {
+            dateStr
+        } else {
+            val utcFormat = SimpleDateFormat("yyyyMMdd", Locale.US).apply {
+                timeZone = TimeZone.getTimeZone("UTC")
+            }
+            utcFormat.format(Date())
         }
-        val todayStr = utcFormat.format(Date())
-        val endpointUrl = "$baseUrl/date/$sportPath/$todayStr/0.00"
+
+        val endpointUrl = "$baseUrl/date/$sportPath/$targetDate/0.00"
 
         try {
             val url = URL(endpointUrl)
@@ -108,12 +114,7 @@ class LiveScoreApiService {
             for (i in 0 until stages.length()) {
                 val stage = stages.getJSONObject(i)
                 val country = stage.optString("Cnm", "")
-                val stageName = stage.optString("Snm", "")
-                val leagueName = if (country.isNotEmpty() && !stageName.contains(country, ignoreCase = true)) {
-                    "$country: $stageName"
-                } else {
-                    stageName
-                }
+                val stageName = stage.optString("Snm", "Giải đấu")
                 val leagueId = stage.optString("Scd", "league_$i")
                 val flag = getCountryFlag(country, sport)
 
@@ -128,6 +129,8 @@ class LiveScoreApiService {
                     val homeName = t1Obj?.optString("Nm", "Home") ?: "Home"
                     val homeAbr = t1Obj?.optString("Abr", homeName.take(3).uppercase()) ?: "HOM"
                     val homeId = t1Obj?.optString("ID", "t1_$eid") ?: "t1_$eid"
+                    val homeImg = t1Obj?.optString("Img", "") ?: ""
+                    val homeLogoUrl = if (homeImg.isNotEmpty()) "$cdnImageBase/$homeImg" else null
 
                     // Team 2 (Away)
                     val t2Arr = event.optJSONArray("T2")
@@ -135,6 +138,8 @@ class LiveScoreApiService {
                     val awayName = t2Obj?.optString("Nm", "Away") ?: "Away"
                     val awayAbr = t2Obj?.optString("Abr", awayName.take(3).uppercase()) ?: "AWY"
                     val awayId = t2Obj?.optString("ID", "t2_$eid") ?: "t2_$eid"
+                    val awayImg = t2Obj?.optString("Img", "") ?: ""
+                    val awayLogoUrl = if (awayImg.isNotEmpty()) "$cdnImageBase/$awayImg" else null
 
                     // Scores
                     val tr1 = event.optString("Tr1", "")
@@ -143,7 +148,7 @@ class LiveScoreApiService {
                     val awayScore = tr2.toIntOrNull() ?: 0
 
                     // Status & Minute
-                    val eps = event.optString("Eps", "NS") // e.g. "78'", "FT", "HT", "NS", "20:00"
+                    val eps = event.optString("Eps", "NS") // e.g. "78'", "FT", "AET", "HT", "NS", "20:00"
                     val esid = event.optInt("Esid", 1)
                     val esd = event.optLong("Esd", 0L)
                     val startTimeFormatted = formatStartTime(esd)
@@ -161,8 +166,8 @@ class LiveScoreApiService {
                     }
 
                     val statusDisplay = when (matchStatus) {
-                        MatchStatus.LIVE -> if (eps.contains("'") || eps.equals("HT", ignoreCase = true)) "$eps LIVE" else "LIVE"
-                        MatchStatus.FINISHED -> "FT"
+                        MatchStatus.LIVE -> if (eps.contains("'") || eps.equals("HT", ignoreCase = true)) eps else "LIVE"
+                        MatchStatus.FINISHED -> if (eps.equals("AET", ignoreCase = true)) "AET" else if (eps.equals("AP", ignoreCase = true)) "AP" else "FT"
                         MatchStatus.SCHEDULED -> if (eps != "NS" && eps.isNotEmpty()) eps else startTimeFormatted
                         MatchStatus.POSTPONED -> "Hoãn"
                     }
@@ -182,17 +187,19 @@ class LiveScoreApiService {
                             id = eid,
                             sport = sport,
                             leagueId = leagueId,
-                            leagueName = leagueName,
+                            leagueName = stageName,
+                            leagueCountry = country,
                             leagueFlag = flag,
                             startTime = startTimeFormatted,
                             status = matchStatus,
                             statusDisplay = statusDisplay,
-                            homeTeam = Team(homeId, homeName, homeAbr, getSportEmoji(sport, homeName)),
-                            awayTeam = Team(awayId, awayName, awayAbr, getSportEmoji(sport, awayName)),
+                            homeTeam = Team(homeId, homeName, homeAbr, getSportEmoji(sport, homeName), homeLogoUrl),
+                            awayTeam = Team(awayId, awayName, awayAbr, getSportEmoji(sport, awayName), awayLogoUrl),
                             score = MatchScore(homeScore, awayScore, eps),
-                            events = emptyList(), // Populated dynamically via scoreboard
+                            events = emptyList(),
                             stats = stats,
-                            lineup = MatchLineup()
+                            lineup = MatchLineup(),
+                            isFavorite = false
                         )
                     )
                 }
@@ -268,7 +275,7 @@ class LiveScoreApiService {
     }
 
     private fun formatStartTime(esd: Long): String {
-        if (esd == 0L) return "Hôm nay"
+        if (esd == 0L) return "19:00"
         return try {
             val str = esd.toString()
             val pattern = if (str.length >= 14) "yyyyMMddHHmmss" else "yyyyMMddHHmm"
@@ -284,7 +291,7 @@ class LiveScoreApiService {
             val min = str.substring(10, 12)
             "$hour:$min"
         } catch (e: Exception) {
-            "Hôm nay"
+            "19:00"
         }
     }
 
@@ -300,9 +307,12 @@ class LiveScoreApiService {
             lower.contains("brazil") -> "🇧🇷"
             lower.contains("argentina") -> "🇦🇷"
             lower.contains("portugal") -> "🇵🇹"
+            lower.contains("norway") -> "🇳🇴"
+            lower.contains("romania") -> "🇷🇴"
             lower.contains("nba") || lower.contains("usa") -> "🇺🇸"
             lower.contains("vietnam") -> "🇻🇳"
             lower.contains("uefa") || lower.contains("champions") -> "⭐"
+            lower.contains("fa cup") -> "🏆"
             sport == SportType.TENNIS -> "🎾"
             sport == SportType.BASKETBALL -> "🏀"
             else -> "🏆"

@@ -46,7 +46,7 @@ data class Team(
 data class MatchScore(
     val home: Int,
     val away: Int,
-    val periodInfo: String // e.g., "78'", "FT", "22:30", "Q4 02:15"
+    val periodInfo: String // e.g., "78'", "FT", "22:30", "AET", "HT"
 )
 
 @Immutable
@@ -88,6 +88,7 @@ data class Match(
     val sport: SportType,
     val leagueId: String,
     val leagueName: String,
+    val leagueCountry: String = "",
     val leagueFlag: String,
     val startTime: String,
     val status: MatchStatus,
@@ -97,6 +98,15 @@ data class Match(
     val score: MatchScore,
     val events: List<MatchEvent> = emptyList(),
     val stats: MatchStats? = null,
-    val lineup: MatchLineup? = null
+    val lineup: MatchLineup? = null,
+    val isFavorite: Boolean = false
 )
 
+@Immutable
+data class LeagueGroup(
+    val id: String,
+    val name: String,
+    val country: String,
+    val flag: String,
+    val matches: List<Match>
+)

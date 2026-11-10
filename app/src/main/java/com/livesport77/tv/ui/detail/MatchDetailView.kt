@@ -18,6 +18,10 @@ import androidx.tv.material3.Button
 import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.livesport77.tv.model.*
 import com.livesport77.tv.ui.theme.*
 
@@ -116,7 +120,11 @@ fun MatchDetailView(
             ) {
                 // Home Team
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = match.homeTeam.iconEmoji, fontSize = 32.sp)
+                    DetailTeamLogo(
+                        logoUrl = match.homeTeam.logoUrl,
+                        emoji = match.homeTeam.iconEmoji,
+                        name = match.homeTeam.name
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = match.homeTeam.name,
@@ -148,7 +156,11 @@ fun MatchDetailView(
 
                 // Away Team
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(text = match.awayTeam.iconEmoji, fontSize = 32.sp)
+                    DetailTeamLogo(
+                        logoUrl = match.awayTeam.logoUrl,
+                        emoji = match.awayTeam.iconEmoji,
+                        name = match.awayTeam.name
+                    )
                     Spacer(modifier = Modifier.height(4.dp))
                     Text(
                         text = match.awayTeam.name,
@@ -313,6 +325,37 @@ fun MatchDetailView(
                     }
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun DetailTeamLogo(
+    logoUrl: String?,
+    emoji: String,
+    name: String
+) {
+    Box(
+        modifier = Modifier
+            .size(46.dp)
+            .clip(CircleShape)
+            .background(Color(0xFF262C3A)),
+        contentAlignment = Alignment.Center
+    ) {
+        if (!logoUrl.isNullOrEmpty()) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(logoUrl)
+                    .crossfade(true)
+                    .build(),
+                contentDescription = name,
+                contentScale = ContentScale.Fit,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+            )
+        } else {
+            Text(text = emoji, fontSize = 28.sp)
         }
     }
 }

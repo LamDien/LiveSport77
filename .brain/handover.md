@@ -48,3 +48,4 @@
 - `plans/261110-1025-livesport77-android-tv/reports/final_report.md` — Báo cáo nghiệm thu 6 phase
 - `docs/specs/livesport77_tv_spec.md` — Đặc tả kỹ thuật chi tiết
 - `docs/DESIGN.md` — Thiết kế kiến trúc bộ nhớ & spatial navigation
+

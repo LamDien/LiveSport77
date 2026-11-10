@@ -12,6 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
@@ -21,7 +22,9 @@ import androidx.tv.material3.ButtonDefaults
 import androidx.tv.material3.MaterialTheme
 import androidx.tv.material3.Text
 import com.livesport77.tv.model.Match
+import com.livesport77.tv.ui.components.LeagueHeaderCard
 import com.livesport77.tv.ui.components.MatchItemCard
+import com.livesport77.tv.ui.components.MatchListControlBar
 import com.livesport77.tv.ui.components.TvHeaderBar
 import com.livesport77.tv.ui.detail.MatchDetailView
 import com.livesport77.tv.ui.theme.*
@@ -31,6 +34,11 @@ import java.util.*
 
 /**
  * Main Master-Detail Home Screen for LiveSport77 Android TV.
+ * Benchmarked strictly on LiveScore.com UI:
+ * - Grouped by League
+ * - [LIVE] filter toggle
+ * - Date Navigation < Today >
+ * - Direct LiveScore.com API data with no local cache
  */
 @Composable
 fun HomeScreen(
@@ -52,11 +60,11 @@ fun HomeScreen(
         modifier = modifier
             .fillMaxSize()
             .background(TvBackground)
-            .padding(18.dp)
+            .padding(16.dp)
     ) {
         Column(
             modifier = Modifier.fillMaxSize(),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // ZONE 1: TOP HEADER & SPORT SELECTOR
             TvHeaderBar(
@@ -65,39 +73,40 @@ fun HomeScreen(
                 currentTime = currentTime
             )
 
-            // ZONE 2 & 3: MASTER-DETAIL SPLIT (36% Rail vs 64% Detail)
+            // ZONE 2 & 3: MASTER-DETAIL SPLIT (45% Rail vs 55% Detail)
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f),
                 horizontalArrangement = Arrangement.spacedBy(14.dp)
             ) {
-                // ZONE 2: MATCH LIST RAIL (LazyColumn with View Recycling for RAM < 60MB)
+                // ZONE 2: MATCH LIST RAIL
                 Column(
                     modifier = Modifier
-                        .weight(0.36f)
+                        .weight(0.45f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(18.dp))
                         .background(TvSurface)
-                        .padding(14.dp)
+                        .padding(12.dp)
                 ) {
+                    // Title & Count
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 10.dp),
+                            .padding(bottom = 8.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = "DANH SÁCH TRẬN ĐẤU",
+                            text = if (uiState.isLiveOnly) "TRẬN ĐẤU ĐANG LIVE" else "DANH SÁCH TRẬN ĐẤU",
                             style = MaterialTheme.typography.labelSmall.copy(
-                                color = TvTextMuted,
+                                color = if (uiState.isLiveOnly) TvLiveRed else TvTextMuted,
                                 fontWeight = FontWeight.Bold,
                                 fontSize = 11.sp
                             )
                         )
                         Text(
-                            text = "${uiState.matches.size} trận",
+                            text = "${uiState.filteredMatches.size} trận",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = TvFocusGold,
                                 fontWeight = FontWeight.Bold,
@@ -106,20 +115,89 @@ fun HomeScreen(
                         )
                     }
 
-                    LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(10.dp),
-                        modifier = Modifier.fillMaxSize()
-                    ) {
-                        items(
-                            items = uiState.matches,
-                            key = { it.id } // Preserves node identity, avoids focus flicker on data update
-                        ) { match ->
-                            MatchItemCard(
-                                match = match,
-                                isSelected = uiState.activeMatch?.id == match.id,
-                                onFocused = { viewModel.setActiveMatch(match) },
-                                onSelect = { viewModel.setFullscreen(true) }
+                    // LIVESCORE CONTROL BAR: [LIVE] < Today > [Calendar]
+                    MatchListControlBar(
+                        isLiveOnly = uiState.isLiveOnly,
+                        onToggleLive = { viewModel.toggleLiveFilter() },
+                        dateDisplay = uiState.dateDisplay,
+                        dayOfMonth = uiState.dateDayOfMonth,
+                        onPrevDate = { viewModel.prevDate() },
+                        onNextDate = { viewModel.nextDate() },
+                        onTodayClick = { viewModel.resetToToday() },
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    )
+
+                    // CONTENT LIST
+                    if (uiState.isLoading) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Text(
+                                    text = "⚡ Đang tải trực tiếp từ LiveScore.com...",
+                                    style = MaterialTheme.typography.titleMedium.copy(
+                                        color = TvFocusGold,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                )
+                                Text(
+                                    text = "Không lưu cache dữ liệu",
+                                    style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted)
+                                )
+                            }
+                        }
+                    } else if (uiState.groupedLeagues.isEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(24.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = if (uiState.isLiveOnly) {
+                                    "Hiện không có trận đấu nào đang LIVE.\nBấm nút [LIVE] để xem tất cả trận đấu."
+                                } else {
+                                    "Không có dữ liệu trận đấu cho ngày này."
+                                },
+                                style = MaterialTheme.typography.bodyMedium.copy(
+                                    color = TvTextMuted,
+                                    textAlign = TextAlign.Center
+                                )
                             )
+                        }
+                    } else {
+                        // LAZYCOLUMN GROUPED BY LEAGUE
+                        LazyColumn(
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                            modifier = Modifier.fillMaxSize()
+                        ) {
+                            uiState.groupedLeagues.forEach { league ->
+                                // League Section Header
+                                item(key = "league_${league.id}") {
+                                    LeagueHeaderCard(league = league)
+                                }
+
+                                // Matches belonging to this League
+                                items(
+                                    items = league.matches,
+                                    key = { it.id }
+                                ) { match ->
+                                    MatchItemCard(
+                                        match = match,
+                                        isSelected = uiState.activeMatch?.id == match.id,
+                                        isFavorite = uiState.favorites.contains(match.id),
+                                        onFocused = { viewModel.setActiveMatch(match) },
+                                        onSelect = { viewModel.setFullscreen(true) },
+                                        onFavoriteClick = { viewModel.toggleFavorite(match.id) }
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -128,7 +206,7 @@ fun HomeScreen(
                 MatchDetailView(
                     match = uiState.activeMatch,
                     onFullscreenClick = { viewModel.setFullscreen(true) },
-                    modifier = Modifier.weight(0.64f)
+                    modifier = Modifier.weight(0.55f)
                 )
             }
         }
@@ -215,23 +293,22 @@ fun FullscreenScoreboardModal(
                     }
                 }
 
+                // Match Status Pill
                 Text(
-                    text = "Trạng thái: ${match.statusDisplay}",
-                    style = MaterialTheme.typography.titleLarge.copy(color = TvNeonGreen, fontWeight = FontWeight.SemiBold)
+                    text = match.statusDisplay,
+                    style = MaterialTheme.typography.titleMedium.copy(color = TvLiveRed, fontWeight = FontWeight.Bold)
                 )
 
+                // Back / Close Button
                 Button(
                     onClick = onClose,
                     colors = ButtonDefaults.colors(
-                        containerColor = TvSurfaceFocused,
-                        contentColor = TvTextPrimary
+                        containerColor = TvFocusGold,
+                        contentColor = Color.Black
                     ),
                     shape = ButtonDefaults.shape(RoundedCornerShape(12.dp))
                 ) {
-                    Text(
-                        text = "Bấm [Back / Esc] để quay lại",
-                        style = MaterialTheme.typography.bodyLarge.copy(fontWeight = FontWeight.SemiBold)
-                    )
+                    Text(text = "Đóng [ESC / Back]", fontWeight = FontWeight.Bold)
                 }
             }
         }
