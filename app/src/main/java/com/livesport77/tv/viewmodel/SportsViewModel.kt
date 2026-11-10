@@ -223,11 +223,11 @@ class SportsViewModel(
     }
 
     private fun computeDateInfo(offset: Int): Triple<String, String, String> {
-        val cal = Calendar.getInstance(TimeZone.getTimeZone("UTC"))
+        val cal = Calendar.getInstance(TimeZone.getDefault())
         cal.add(Calendar.DAY_OF_YEAR, offset)
 
         val apiFormat = SimpleDateFormat("yyyyMMdd", Locale.US).apply {
-            timeZone = TimeZone.getTimeZone("UTC")
+            timeZone = TimeZone.getDefault()
         }
         val apiDate = apiFormat.format(cal.time)
 

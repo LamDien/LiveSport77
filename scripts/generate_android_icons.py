@@ -94,3 +94,4 @@ if __name__ == "__main__":
     if len(sys.argv) > 2:
         banner = sys.argv[2]
     process_assets(icon, banner, res)
+
