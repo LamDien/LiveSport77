@@ -186,6 +186,7 @@ object MockSportsDataSource {
             SportType.FOOTBALL -> footballMatches
             SportType.BASKETBALL -> basketballMatches
             SportType.TENNIS -> tennisMatches
+            else -> emptyList()
         }
     }
 }

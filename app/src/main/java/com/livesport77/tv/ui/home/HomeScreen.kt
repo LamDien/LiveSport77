@@ -83,22 +83,22 @@ fun HomeScreen(
                 // ZONE 2: MATCH LIST RAIL
                 Column(
                     modifier = Modifier
-                        .weight(0.45f)
+                        .weight(0.52f)
                         .fillMaxHeight()
                         .clip(RoundedCornerShape(18.dp))
                         .background(TvSurface)
                         .padding(12.dp)
                 ) {
-                    // Title & Count
+                    // Header Status & Count
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(bottom = 8.dp),
+                            .padding(horizontal = 4.dp, vertical = 2.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = if (uiState.isLiveOnly) "TRẬN ĐẤU ĐANG LIVE" else "DANH SÁCH TRẬN ĐẤU",
+                            text = if (uiState.isLiveOnly) "● LIVE SCORES" else "ALL MATCHES",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = if (uiState.isLiveOnly) TvLiveRed else TvTextMuted,
                                 fontWeight = FontWeight.Bold,
@@ -106,10 +106,10 @@ fun HomeScreen(
                             )
                         )
                         Text(
-                            text = "${uiState.filteredMatches.size} trận",
+                            text = "${uiState.filteredMatches.size} matches",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 color = TvFocusGold,
-                                fontWeight = FontWeight.Bold,
+                                fontWeight = FontWeight.SemiBold,
                                 fontSize = 11.sp
                             )
                         )
@@ -206,7 +206,7 @@ fun HomeScreen(
                 MatchDetailView(
                     match = uiState.activeMatch,
                     onFullscreenClick = { viewModel.setFullscreen(true) },
-                    modifier = Modifier.weight(0.55f)
+                    modifier = Modifier.weight(0.48f)
                 )
             }
         }

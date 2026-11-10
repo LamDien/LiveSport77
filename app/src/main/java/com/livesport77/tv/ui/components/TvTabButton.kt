@@ -9,11 +9,13 @@ import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
@@ -26,7 +28,8 @@ import androidx.tv.material3.Text
 import com.livesport77.tv.ui.theme.*
 
 /**
- * TV Tab Button for Sports Selection (Football, Basketball, Tennis).
+ * TV Tab Button for Sports Selection benchmarked on LiveScore.com UI:
+ * Capsule pill: Selected = Pure White with dark text, Unselected = Dark pill with white text.
  */
 @Composable
 fun TvTabButton(
@@ -45,44 +48,54 @@ fun TvTabButton(
         label = "tv_tab_scale"
     )
 
-    val shape = RoundedCornerShape(12.dp)
+    val shape = CircleShape
+
+    val bgColor = when {
+        isFocused && isSelected -> Color.White
+        isFocused -> Color(0xFF2A3142)
+        isSelected -> Color.White
+        else -> Color(0xFF1A1E29)
+    }
+
+    val textColor = when {
+        isSelected -> Color(0xFF0F1115)
+        isFocused -> TvFocusGold
+        else -> Color(0xFFE2E8F0)
+    }
+
+    val borderColor = when {
+        isFocused -> TvFocusGold
+        isSelected -> Color.White
+        else -> Color(0xFF2E3648)
+    }
 
     Box(
         modifier = modifier
             .scale(scale)
-            .padding(horizontal = 4.dp)
+            .padding(horizontal = 3.dp)
             .clip(shape)
-            .background(
-                when {
-                    isFocused -> TvFocusGold
-                    isSelected -> TvSurfaceFocused
-                    else -> Color.Transparent
-                }
-            )
+            .background(bgColor)
             .border(
                 width = if (isFocused) 2.dp else 1.dp,
-                color = when {
-                    isFocused -> TvFocusGold
-                    isSelected -> TvBorderFocused
-                    else -> TvBorderSubtle
-                },
+                color = borderColor,
                 shape = shape
             )
             .focusable(interactionSource = interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() }
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 14.dp, vertical = 7.dp)
     ) {
-        Text(
-            text = "$icon  $title",
-            style = MaterialTheme.typography.titleLarge.copy(
-                fontSize = 15.sp,
-                fontWeight = if (isSelected || isFocused) FontWeight.Bold else FontWeight.Medium,
-                color = when {
-                    isFocused -> Color.Black
-                    isSelected -> TvFocusGold
-                    else -> TvTextPrimary
-                }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+        ) {
+            Text(
+                text = "$icon  $title",
+                style = MaterialTheme.typography.titleMedium.copy(
+                    fontSize = 13.sp,
+                    fontWeight = if (isSelected || isFocused) FontWeight.Bold else FontWeight.SemiBold,
+                    color = textColor
+                )
             )
-        )
+        }
     }
 }

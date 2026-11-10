@@ -28,6 +28,7 @@ import com.livesport77.tv.ui.theme.*
 fun TvFocusCard(
     modifier: Modifier = Modifier,
     cornerRadius: Dp = 14.dp,
+    contentPadding: PaddingValues = PaddingValues(14.dp),
     onClick: () -> Unit = {},
     content: @Composable ColumnScope.(isFocused: Boolean) -> Unit
 ) {
@@ -35,7 +36,7 @@ fun TvFocusCard(
     val isFocused by interactionSource.collectIsFocusedAsState()
 
     val scale by animateFloatAsState(
-        targetValue = if (isFocused) 1.03f else 1.0f,
+        targetValue = if (isFocused) 1.02f else 1.0f,
         animationSpec = tween(durationMillis = 150),
         label = "tv_card_scale"
     )
@@ -46,7 +47,7 @@ fun TvFocusCard(
         modifier = modifier
             .scale(scale)
             .shadow(
-                elevation = if (isFocused) 16.dp else 2.dp,
+                elevation = if (isFocused) 12.dp else 2.dp,
                 shape = shape,
                 ambientColor = if (isFocused) TvFocusGold else Color.Black,
                 spotColor = if (isFocused) TvFocusGold else Color.Black
@@ -54,13 +55,13 @@ fun TvFocusCard(
             .clip(shape)
             .background(if (isFocused) TvSurfaceFocused else TvSurface)
             .border(
-                width = if (isFocused) 2.5.dp else 1.dp,
+                width = if (isFocused) 2.dp else 1.dp,
                 color = if (isFocused) TvBorderFocused else TvBorderSubtle,
                 shape = shape
             )
             .focusable(interactionSource = interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() }
-            .padding(14.dp)
+            .padding(contentPadding)
     ) {
         Column(modifier = Modifier.fillMaxWidth()) {
             content(isFocused)

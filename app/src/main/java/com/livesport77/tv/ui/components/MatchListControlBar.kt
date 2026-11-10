@@ -42,8 +42,9 @@ fun MatchListControlBar(
         modifier = modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(12.dp))
-            .background(Color(0xFF141822))
-            .padding(horizontal = 10.dp, vertical = 6.dp),
+            .background(Color(0xFF13161F))
+            .border(1.dp, Color(0xFF232A3B), RoundedCornerShape(12.dp))
+            .padding(horizontal = 10.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
@@ -58,7 +59,7 @@ fun MatchListControlBar(
         // 2. DATE NAVIGATION: < Today >
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             TvArrowButton(text = "‹", onClick = onPrevDate)
 
@@ -67,7 +68,7 @@ fun MatchListControlBar(
                 style = MaterialTheme.typography.titleMedium.copy(
                     color = TvTextPrimary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 13.sp
+                    fontSize = 14.sp
                 )
             )
 
@@ -91,37 +92,37 @@ private fun TvFilterPill(
 
     val bg = when {
         isFocused -> TvFocusGold
-        isActive -> TvLiveRed
-        else -> Color(0xFF202738)
+        isActive -> Color(0xFFE11D48)
+        else -> Color(0xFF1E2330)
     }
 
     val textColor = when {
         isFocused -> Color.Black
         isActive -> Color.White
-        else -> TvTextMuted
+        else -> Color(0xFFE2E8F0)
     }
 
     Row(
         modifier = Modifier
-            .clip(RoundedCornerShape(14.dp))
+            .clip(CircleShape)
             .background(bg)
             .border(
                 width = if (isFocused) 2.dp else 1.dp,
-                color = if (isFocused) TvFocusGold else if (isActive) TvLiveRed else Color(0xFF333E56),
-                shape = RoundedCornerShape(14.dp)
+                color = if (isFocused) TvFocusGold else if (isActive) Color(0xFFE11D48) else Color(0xFF2E384D),
+                shape = CircleShape
             )
             .focusable(interactionSource = interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() }
-            .padding(horizontal = 10.dp, vertical = 4.dp),
+            .padding(horizontal = 12.dp, vertical = 5.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
+        horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
         if (showDot) {
             Box(
                 modifier = Modifier
-                    .size(5.dp)
+                    .size(6.dp)
                     .clip(CircleShape)
-                    .background(if (isFocused) Color.Black else Color.White)
+                    .background(if (isFocused) Color.Black else if (isActive) Color.White else Color(0xFFE11D48))
             )
         }
         Text(
@@ -145,9 +146,14 @@ private fun TvArrowButton(
 
     Box(
         modifier = Modifier
-            .size(24.dp)
+            .size(28.dp)
             .clip(CircleShape)
-            .background(if (isFocused) TvFocusGold else Color(0xFF202738))
+            .background(if (isFocused) TvFocusGold else Color(0xFF1E2330))
+            .border(
+                width = if (isFocused) 2.dp else 1.dp,
+                color = if (isFocused) TvFocusGold else Color(0xFF2A3345),
+                shape = CircleShape
+            )
             .focusable(interactionSource = interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() },
         contentAlignment = Alignment.Center
@@ -157,7 +163,7 @@ private fun TvArrowButton(
             style = MaterialTheme.typography.titleMedium.copy(
                 color = if (isFocused) Color.Black else TvTextPrimary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 15.sp
+                fontSize = 17.sp
             )
         )
     }
@@ -173,26 +179,30 @@ private fun TvCalendarBadge(
 
     Box(
         modifier = Modifier
-            .size(26.dp)
-            .clip(RoundedCornerShape(6.dp))
-            .background(if (isFocused) TvFocusGold else Color(0xFF202738))
+            .size(28.dp)
+            .clip(RoundedCornerShape(7.dp))
+            .background(if (isFocused) TvFocusGold else Color(0xFF1E2330))
             .border(
-                width = 1.dp,
+                width = if (isFocused) 2.dp else 1.dp,
                 color = if (isFocused) TvFocusGold else Color(0xFF333E56),
-                shape = RoundedCornerShape(6.dp)
+                shape = RoundedCornerShape(7.dp)
             )
             .focusable(interactionSource = interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() },
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "📅 $day",
-            style = MaterialTheme.typography.labelSmall.copy(
-                color = if (isFocused) Color.Black else TvTextMuted,
-                fontWeight = FontWeight.Bold,
-                fontSize = 9.sp
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = day,
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = if (isFocused) Color.Black else TvTextPrimary,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 11.sp
+                )
             )
-        )
+        }
     }
 }
-
