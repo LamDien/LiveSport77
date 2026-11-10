@@ -9,3 +9,6 @@
 [10:53] ALL PHASES COMPLETE: 6/6 phases (100%) ✅
 [11:11] RUN /test: 6/6 test suites passed ✅ (Manifest, RAM Budget, Kotlin sources, Models, Mock Data, D-Pad Engine)
 [11:28] DEPLOY SUCCESS: Android TV AVD AndroidTV_1080p created, APK installed and launched successfully ✅ (Live screenshot captured)
+[13:10] CONNECTED LIVESCORE CDN: Replaced demo mock data with direct API prod-cdn-public-api.lsmedia1.com (100 Football, 78 Basketball, 123 Tennis matches). Tested on Android TV emulator.
+[13:58] RELEASE BUILD & SIGNING: Created persistent keystore keystore/livesport77.jks, configured versionCode 100 & versionName 1.0.0 for seamless update/overwrite. Built LiveSport77-v1.0.0-release.apk (1.4MB, verified v2 scheme).
+[14:06] GITHUB DEPLOYMENT: Initialized git repository, created .gitignore, pushed to https://github.com/LamDien/LiveSport77 (branch main).
