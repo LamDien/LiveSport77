@@ -1,0 +1,26 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="320dp"
+    android:height="180dp"
+    android:viewportWidth="320"
+    android:viewportHeight="180">
+    <!-- Dark Background -->
+    <path
+        android:fillColor="#0B0F17"
+        android:pathData="M0,0h320v180h-320z" />
+    
+    <!-- Accent Sports Stripe -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M0,172h320v8h-320z" />
+
+    <!-- Glow Circle in background -->
+    <path
+        android:fillColor="#161F2E"
+        android:pathData="M160,90m-60,0a60,60 0,1 1,120 0a60,60 0,1 1,-120 0" />
+
+    <!-- Trophy / Star Icon Vector -->
+    <path
+        android:fillColor="#FFD700"
+        android:pathData="M160,45 L166,62 L184,62 L170,73 L175,90 L160,80 L145,90 L150,73 L136,62 L154,62 Z" />
+</vector>
+

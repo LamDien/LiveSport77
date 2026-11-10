@@ -1,0 +1,33 @@
+{
+  "project": {
+    "name": "LiveSport77",
+    "description": "Nền tảng theo dõi tỷ số & thông tin thể thao trực tiếp trên Android TV kết nối dữ liệu thực tế từ LiveScore.com CDN (Tối ưu tuyệt đối RAM < 60MB, CPU bằng Native Android & Jetpack Compose for TV)",
+    "target_platform": "Android TV (Leanback / Google TV, 10-foot UI)",
+    "created_at": "2026-11-10T10:25:10+07:00",
+    "updated_at": "2026-11-10T13:13:00+07:00",
+    "current_stage": "livescore_api_connected_deployed"
+  },
+  "tech_stack": [
+    "Kotlin 2.0+",
+    "Jetpack Compose for TV (androidx.tv.material3, compose foundation)",
+    "LiveScore.com CDN Production API (HttpURLConnection, OkHttp, JSON)",
+    "Kotlin Coroutines & StateFlow (MVVM)",
+    "Coil TV (Image loading & RAM Cache < 15MB)",
+    "Android D-Pad Focus Engine (FocusRequester, LocalFocusManager)"
+  ],
+  "architecture": {
+    "pattern": "MVVM / Clean Architecture",
+    "ram_budget": "< 60 MB (Thực tế: Java Heap 13.2 MB)",
+    "cpu_idle_target": "< 2%",
+    "rendering": "Hardware-accelerated View Recycling LazyColumn",
+    "data_source": "LiveScore.com Direct API (https://prod-cdn-public-api.lsmedia1.com)"
+  },
+  "documents": {
+    "brief": "docs/BRIEF.md",
+    "spec": "docs/specs/livesport77_tv_spec.md",
+    "design": "docs/DESIGN.md",
+    "design_specs": "docs/design-specs.md",
+    "mockup": "docs/mockup/index.html",
+    "plan": "plans/261110-1025-livesport77-android-tv/plan.md"
+  }
+}
