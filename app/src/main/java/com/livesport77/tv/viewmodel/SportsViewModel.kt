@@ -31,7 +31,8 @@ data class SportsUiState(
 )
 
 class SportsViewModel(
-    private val repository: SportsRepository = SportsRepositoryImpl()
+    private val repository: SportsRepository = SportsRepositoryImpl(),
+    private val enableAutoRefresh: Boolean = true
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(SportsUiState(isLoading = true))
@@ -53,7 +54,9 @@ class SportsViewModel(
         loadDataForCurrentSelection()
 
         // Background auto refresh every 45s for live scores
-        startAutoRefresh()
+        if (enableAutoRefresh) {
+            startAutoRefresh()
+        }
     }
 
     fun selectSport(sport: SportType) {
