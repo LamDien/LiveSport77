@@ -315,7 +315,7 @@ fun MatchDetailView(
                 }
             }
 
-            // RIGHT HALF: STATS BARS
+            // RIGHT HALF: STATS BARS (only shown for LIVE / FINISHED matches with real stats)
             Column(
                 modifier = Modifier
                     .weight(1f)
@@ -334,29 +334,102 @@ fun MatchDetailView(
                     )
                 )
 
-                val stats = match.stats ?: MatchStats()
+                val isNotStarted = match.status == MatchStatus.SCHEDULED || match.status == MatchStatus.POSTPONED
+                val stats = if (isNotStarted) null else match.stats
 
-                val shotsTotal = (stats.shotsOnTargetHome + stats.shotsOnTargetAway).coerceAtLeast(1)
-                val cornersTotal = (stats.cornersHome + stats.cornersAway).coerceAtLeast(1)
+                if (isNotStarted) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text(
+                                text = if (match.status == MatchStatus.POSTPONED) "Trận đấu tạm hoãn" else "Trận đấu chưa diễn ra",
+                                style = MaterialTheme.typography.titleSmall.copy(
+                                    color = TvTextPrimary,
+                                    fontWeight = FontWeight.SemiBold,
+                                    fontSize = 13.sp
+                                )
+                            )
+                            Text(
+                                text = "Thống kê trực tiếp sẽ cập nhật khi bóng lăn (${match.startTime} HN).",
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = TvTextMuted,
+                                    fontSize = 11.sp,
+                                    textAlign = TextAlign.Center
+                                )
+                            )
+                        }
+                    }
+                } else if (stats == null) {
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "Chưa có dữ liệu thống kê cho trận đấu này",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = TvTextMuted,
+                                fontSize = 12.sp,
+                                textAlign = TextAlign.Center
+                            )
+                        )
+                    }
+                } else {
+                    val shotsTotal = (stats.shotsOnTargetHome + stats.shotsOnTargetAway).coerceAtLeast(1)
+                    val cornersTotal = (stats.cornersHome + stats.cornersAway).coerceAtLeast(1)
 
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    StatBar(title = "Kiểm soát bóng", homeVal = "${stats.possessionHome}%", awayVal = "${stats.possessionAway}%", homePercent = stats.possessionHome / 100f)
-                    StatBar(title = "Sút trúng đích", homeVal = "${stats.shotsOnTargetHome}", awayVal = "${stats.shotsOnTargetAway}", homePercent = stats.shotsOnTargetHome.toFloat() / shotsTotal)
-                    StatBar(title = "Phạt góc", homeVal = "${stats.cornersHome}", awayVal = "${stats.cornersAway}", homePercent = stats.cornersHome.toFloat() / cornersTotal)
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (stats.possessionHome > 0 || stats.possessionAway > 0) {
+                            StatBar(
+                                title = "Kiểm soát bóng",
+                                homeVal = "${stats.possessionHome}%",
+                                awayVal = "${stats.possessionAway}%",
+                                homePercent = stats.possessionHome / 100f
+                            )
+                        }
+                        StatBar(
+                            title = "Sút trúng đích",
+                            homeVal = "${stats.shotsOnTargetHome}",
+                            awayVal = "${stats.shotsOnTargetAway}",
+                            homePercent = stats.shotsOnTargetHome.toFloat() / shotsTotal
+                        )
+                        StatBar(
+                            title = "Phạt góc",
+                            homeVal = "${stats.cornersHome}",
+                            awayVal = "${stats.cornersAway}",
+                            homePercent = stats.cornersHome.toFloat() / cornersTotal
+                        )
+                    }
                 }
 
-                // Lineup & Fullscreen Action Row
+                // Lineup hint & Fullscreen Action Row
+                val lineupSummary = match.lineup?.let { lu ->
+                    if (lu.homeFormation.isNotBlank() && lu.awayFormation.isNotBlank()) {
+                        "👥 Sơ đồ: ${lu.homeFormation} vs ${lu.awayFormation}"
+                    } else null
+                } ?: if (isNotStarted) "👥 Xem đội hình dự kiến →" else "👥 Xem đội hình thi đấu →"
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "👥 Sơ đồ: ${match.lineup?.homeFormation ?: "4-3-3"} vs ${match.lineup?.awayFormation ?: "4-2-3-1"}",
+                        text = lineupSummary,
                         style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontSize = 10.sp),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f, fill = false)
                     )
 

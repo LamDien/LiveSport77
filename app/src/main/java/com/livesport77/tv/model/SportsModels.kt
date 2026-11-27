@@ -78,10 +78,12 @@ data class MatchStats(
 
 @Immutable
 data class MatchLineup(
-    val homeFormation: String = "4-3-3",
-    val awayFormation: String = "4-2-3-1",
+    val homeFormation: String = "",
+    val awayFormation: String = "",
     val homeStarting: List<String> = emptyList(),
-    val awayStarting: List<String> = emptyList()
+    val awayStarting: List<String> = emptyList(),
+    val homeCoach: String = "",
+    val awayCoach: String = ""
 )
 
 @Immutable

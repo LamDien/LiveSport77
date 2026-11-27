@@ -36,10 +36,14 @@ class SportsViewModelTest {
     private class FakeSportsRepository(
         private val matchesBySport: Map<SportType, List<Match>>,
         private val incidentsByMatchId: Map<String, List<MatchEvent>> = emptyMap(),
-        private val standingsByKey: Map<String, List<LeagueStandingRow>> = emptyMap()
+        private val standingsByKey: Map<String, List<LeagueStandingRow>> = emptyMap(),
+        private val statsByMatchId: Map<String, MatchStats> = emptyMap(),
+        private val lineupsByMatchId: Map<String, MatchLineup> = emptyMap()
     ) : SportsRepository {
         val refreshedCalls = mutableListOf<Pair<SportType, String>>()
         val incidentCalls = mutableListOf<String>()
+        val statsCalls = mutableListOf<String>()
+        val lineupCalls = mutableListOf<String>()
 
         override fun getMatches(sport: SportType): Flow<List<Match>> =
             flowOf(matchesBySport[sport].orEmpty())
@@ -52,6 +56,16 @@ class SportsViewModelTest {
         override suspend fun fetchMatchIncidents(sport: SportType, match: Match): List<MatchEvent> {
             incidentCalls.add(match.id)
             return incidentsByMatchId[match.id].orEmpty()
+        }
+
+        override suspend fun fetchMatchStatistics(sport: SportType, matchId: String): MatchStats? {
+            statsCalls.add(matchId)
+            return statsByMatchId[matchId]
+        }
+
+        override suspend fun fetchMatchLineup(sport: SportType, matchId: String): MatchLineup? {
+            lineupCalls.add(matchId)
+            return lineupsByMatchId[matchId]
         }
 
         override suspend fun fetchLeagueStandings(
@@ -236,5 +250,24 @@ class SportsViewModelTest {
         vm.closeLeagueStandings()
         assertEquals(null, vm.uiState.value.selectedStandingsLeague)
         assertTrue(vm.uiState.value.leagueStandings.isEmpty())
+    }
+
+    @Test
+    fun scheduledMatch_skipsStatsFetchButLoadsLineup() = runTest(testDispatcher) {
+        val scheduled = sampleMatch("sched1", status = MatchStatus.SCHEDULED)
+        val expectedLineup = MatchLineup("4-3-3", "4-4-2", listOf("7. Saka"), listOf("20. Palmer"))
+        val fakeRepo = FakeSportsRepository(
+            matchesBySport = mapOf(SportType.FOOTBALL to listOf(scheduled)),
+            statsByMatchId = mapOf("sched1" to MatchStats(60, 40, 5, 2)),
+            lineupsByMatchId = mapOf("sched1" to expectedLineup)
+        )
+
+        val vm = SportsViewModel(repository = fakeRepo, enableAutoRefresh = false)
+        advanceUntilIdle()
+
+        assertTrue("Scheduled match must not fetch live stats", fakeRepo.statsCalls.isEmpty())
+        assertEquals(null, vm.uiState.value.activeMatch?.stats)
+        assertEquals(listOf("sched1"), fakeRepo.lineupCalls)
+        assertEquals(expectedLineup, vm.uiState.value.activeMatch?.lineup)
     }
 }

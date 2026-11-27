@@ -189,6 +189,198 @@ class LiveScoreApiService {
     }
 
     /**
+     * Fetch real live/finished match statistics from LiveScore CDN.
+     */
+    suspend fun fetchMatchStatistics(sport: SportType, matchId: String): MatchStats? = withContext(Dispatchers.IO) {
+        if (!isValidMatchId(matchId)) return@withContext null
+        val sportPath = sportToPath(sport)
+        val endpointUrl = "$baseUrl/statistics/$sportPath/$matchId"
+
+        var connection: HttpsURLConnection? = null
+        try {
+            val url = URL(endpointUrl)
+            if (url.protocol != "https") return@withContext null
+            connection = (url.openConnection() as HttpsURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 6000
+                readTimeout = 6000
+                instanceFollowRedirects = false
+                setRequestProperty("User-Agent", userAgent)
+                setRequestProperty("Accept", "application/json, text/plain, */*")
+            }
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val jsonString = readStreamBounded(connection.inputStream, MAX_SCOREBOARD_RESPONSE_BYTES)
+                return@withContext parseStatistics(jsonString)
+            }
+        } catch (e: Exception) {
+            Log.w("LiveScoreApi", "Statistics fetch error: ${e.javaClass.simpleName}")
+        } finally {
+            connection?.disconnect()
+        }
+        null
+    }
+
+    internal fun parseStatistics(jsonString: String): MatchStats? {
+        return try {
+            val root = JSONObject(jsonString)
+            val statArr = root.optJSONArray("Stat") ?: return null
+            if (statArr.length() < 2) return null
+
+            var homeObj: JSONObject? = null
+            var awayObj: JSONObject? = null
+            for (i in 0 until statArr.length()) {
+                val item = statArr.optJSONObject(i) ?: continue
+                when (item.optInt("Tnb", 0)) {
+                    1 -> homeObj = item
+                    2 -> awayObj = item
+                }
+            }
+            val h = homeObj ?: statArr.optJSONObject(0) ?: return null
+            val a = awayObj ?: statArr.optJSONObject(1) ?: return null
+
+            val pssHome = h.optInt("Pss", 0)
+            val pssAway = a.optInt("Pss", 0)
+            val shonHome = h.optInt("Shon", 0)
+            val shonAway = a.optInt("Shon", 0)
+            val cosHome = h.optInt("Cos", 0)
+            val cosAway = a.optInt("Cos", 0)
+            val flsHome = h.optInt("Fls", 0)
+            val flsAway = a.optInt("Fls", 0)
+            val totalHome = shonHome + h.optInt("Shof", 0)
+            val totalAway = shonAway + a.optInt("Shof", 0)
+
+            // Ignore empty zeroed statistics payloads
+            if (pssHome == 0 && pssAway == 0 && shonHome == 0 && shonAway == 0 && cosHome == 0 && cosAway == 0) {
+                return null
+            }
+
+            MatchStats(
+                possessionHome = pssHome,
+                possessionAway = pssAway,
+                shotsOnTargetHome = shonHome,
+                shotsOnTargetAway = shonAway,
+                totalShotsHome = totalHome,
+                totalShotsAway = totalAway,
+                cornersHome = cosHome,
+                cornersAway = cosAway,
+                foulsHome = flsHome,
+                foulsAway = flsAway
+            )
+        } catch (e: Exception) {
+            Log.w("LiveScoreApi", "Error parsing statistics: ${e.javaClass.simpleName}")
+            null
+        }
+    }
+
+    /**
+     * Fetch match lineups (confirmed starting XI or predicted pre-match lineup) from LiveScore CDN.
+     */
+    suspend fun fetchMatchLineup(sport: SportType, matchId: String): MatchLineup? = withContext(Dispatchers.IO) {
+        if (!isValidMatchId(matchId)) return@withContext null
+        val sportPath = sportToPath(sport)
+        val endpointUrl = "$baseUrl/lineups/$sportPath/$matchId"
+
+        var connection: HttpsURLConnection? = null
+        try {
+            val url = URL(endpointUrl)
+            if (url.protocol != "https") return@withContext null
+            connection = (url.openConnection() as HttpsURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 6000
+                readTimeout = 6000
+                instanceFollowRedirects = false
+                setRequestProperty("User-Agent", userAgent)
+                setRequestProperty("Accept", "application/json, text/plain, */*")
+            }
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val jsonString = readStreamBounded(connection.inputStream, MAX_SCOREBOARD_RESPONSE_BYTES)
+                return@withContext parseLineup(jsonString)
+            }
+        } catch (e: Exception) {
+            Log.w("LiveScoreApi", "Lineups fetch error: ${e.javaClass.simpleName}")
+        } finally {
+            connection?.disconnect()
+        }
+        null
+    }
+
+    internal fun parseLineup(jsonString: String): MatchLineup? {
+        return try {
+            val root = JSONObject(jsonString)
+            val luArr = root.optJSONArray("Lu") ?: return null
+            if (luArr.length() == 0) return null
+
+            var homeFormation = ""
+            var awayFormation = ""
+            val homeStarting = mutableListOf<String>()
+            val awayStarting = mutableListOf<String>()
+            var homeCoach = ""
+            var awayCoach = ""
+
+            for (i in 0 until luArr.length()) {
+                val teamObj = luArr.optJSONObject(i) ?: continue
+                val tnb = teamObj.optInt("Tnb", i + 1)
+                val foArr = teamObj.optJSONArray("Fo")
+                val formation = if (foArr != null && foArr.length() > 0) {
+                    (0 until foArr.length()).map { foArr.optInt(it) }.filter { it > 0 }.joinToString("-")
+                } else ""
+
+                val players = mutableListOf<String>()
+                var coach = ""
+                val psArr = teamObj.optJSONArray("Ps")
+                if (psArr != null) {
+                    for (j in 0 until psArr.length()) {
+                        val p = psArr.optJSONObject(j) ?: continue
+                        val pos = p.optInt("Pos", 0)
+                        val name = extractPlayerName(p) ?: continue
+                        if (pos == 10 || p.optString("Pon", "").equals("COACH", ignoreCase = true)) {
+                            coach = name
+                        } else if (pos in 1..4) {
+                            val num = p.optInt("Snu", 0)
+                            val label = if (num > 0) "$num. $name" else name
+                            players.add(label)
+                        }
+                    }
+                }
+
+                if (tnb == 1) {
+                    homeFormation = formation
+                    homeStarting.addAll(players)
+                    homeCoach = coach
+                } else if (tnb == 2) {
+                    awayFormation = formation
+                    awayStarting.addAll(players)
+                    awayCoach = coach
+                }
+            }
+
+            if (homeStarting.isEmpty() && awayStarting.isEmpty() && homeFormation.isEmpty() && awayFormation.isEmpty()) {
+                return null
+            }
+
+            MatchLineup(
+                homeFormation = homeFormation,
+                awayFormation = awayFormation,
+                homeStarting = homeStarting,
+                awayStarting = awayStarting,
+                homeCoach = homeCoach,
+                awayCoach = awayCoach
+            )
+        } catch (e: Exception) {
+            Log.w("LiveScoreApi", "Error parsing lineups: ${e.javaClass.simpleName}")
+            null
+        }
+    }
+
+    private fun sportToPath(sport: SportType): String = when (sport) {
+        SportType.FOOTBALL -> "soccer"
+        SportType.HOCKEY -> "hockey"
+        SportType.BASKETBALL -> "basketball"
+        SportType.TENNIS -> "tennis"
+        SportType.CRICKET -> "cricket"
+    }
+
+    /**
      * Fetch league standings table directly from LiveScore CDN stage endpoint.
      */
     suspend fun fetchLeagueStandings(
@@ -365,16 +557,6 @@ class LiveScoreApiService {
                         MatchStatus.POSTPONED -> "Hoãn"
                     }
 
-                    // Default Stats for TV view
-                    val stats = MatchStats(
-                        possessionHome = if (homeScore > awayScore) 56 else if (homeScore < awayScore) 44 else 50,
-                        possessionAway = if (homeScore > awayScore) 44 else if (homeScore < awayScore) 56 else 50,
-                        shotsOnTargetHome = (homeScore * 2 + 3).coerceAtLeast(1),
-                        shotsOnTargetAway = (awayScore * 2 + 2).coerceAtLeast(1),
-                        cornersHome = 5,
-                        cornersAway = 4
-                    )
-
                     matches.add(
                         Match(
                             id = eid,
@@ -392,8 +574,8 @@ class LiveScoreApiService {
                             awayTeam = Team(awayId, awayName, awayAbr, getSportEmoji(sport, awayName), awayLogoUrl),
                             score = MatchScore(homeScore, awayScore, eps),
                             events = emptyList(),
-                            stats = stats,
-                            lineup = MatchLineup(),
+                            stats = null,
+                            lineup = null,
                             isFavorite = false
                         )
                     )

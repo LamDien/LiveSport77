@@ -5,6 +5,8 @@ import com.livesport77.tv.data.api.LiveScoreApiService
 import com.livesport77.tv.model.LeagueStandingRow
 import com.livesport77.tv.model.Match
 import com.livesport77.tv.model.MatchEvent
+import com.livesport77.tv.model.MatchLineup
+import com.livesport77.tv.model.MatchStats
 import com.livesport77.tv.model.SportType
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,6 +17,8 @@ interface SportsRepository {
     fun getMatches(sport: SportType): Flow<List<Match>>
     suspend fun refreshSport(sport: SportType, dateStr: String = ""): List<Match>
     suspend fun fetchMatchIncidents(sport: SportType, match: Match): List<MatchEvent>
+    suspend fun fetchMatchStatistics(sport: SportType, matchId: String): MatchStats?
+    suspend fun fetchMatchLineup(sport: SportType, matchId: String): MatchLineup?
     suspend fun fetchLeagueStandings(sport: SportType, categoryCode: String, stageCode: String): List<LeagueStandingRow>
     fun getMatchDetail(matchId: String): Flow<Match?>
 }
@@ -64,6 +68,24 @@ class SportsRepositoryImpl(
         } catch (e: Exception) {
             Log.w("SportsRepository", "Failed to fetch incidents for match ${match.id}: ${e.message}")
             emptyList()
+        }
+    }
+
+    override suspend fun fetchMatchStatistics(sport: SportType, matchId: String): MatchStats? {
+        return try {
+            apiService.fetchMatchStatistics(sport, matchId)
+        } catch (e: Exception) {
+            Log.w("SportsRepository", "Failed to fetch statistics: ${e.javaClass.simpleName}")
+            null
+        }
+    }
+
+    override suspend fun fetchMatchLineup(sport: SportType, matchId: String): MatchLineup? {
+        return try {
+            apiService.fetchMatchLineup(sport, matchId)
+        } catch (e: Exception) {
+            Log.w("SportsRepository", "Failed to fetch lineup: ${e.javaClass.simpleName}")
+            null
         }
     }
 

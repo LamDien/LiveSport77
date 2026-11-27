@@ -337,4 +337,98 @@ class LiveScoreApiServiceTest {
         assertEquals(2, rows[1].rank)
         assertEquals("Arsenal", rows[1].teamName)
     }
+
+    @Test
+    fun parseLiveScoreJson_doesNotPopulateFakeStatsOrLineup() {
+        val payload = """
+            {
+              "Stages": [
+                {
+                  "Sid": "100",
+                  "Cnm": "England",
+                  "Snm": "Premier League",
+                  "Events": [
+                    {
+                      "Eid": "999",
+                      "Esd": 20261127220000,
+                      "Eps": "NS",
+                      "Esid": 1,
+                      "T1": [{"ID": "h1", "Nm": "Arsenal", "Abr": "ARS"}],
+                      "T2": [{"ID": "a1", "Nm": "Chelsea", "Abr": "CHE"}]
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val match = apiService.parseLiveScoreJson(payload, SportType.FOOTBALL).first()
+        assertEquals(MatchStatus.SCHEDULED, match.status)
+        assertNull(match.stats)
+        assertNull(match.lineup)
+    }
+
+    @Test
+    fun parseStatistics_parsesRealTeamStatsAndRejectsEmptyZeroPayload() {
+        val statsJson = """
+            {
+              "Eid": "1883580",
+              "Stat": [
+                {"Tnb": 1, "Pss": 54, "Shon": 10, "Shof": 8, "Cos": 11, "Fls": 10},
+                {"Tnb": 2, "Pss": 46, "Shon": 9, "Shof": 4, "Cos": 4, "Fls": 13}
+              ]
+            }
+        """.trimIndent()
+
+        val stats = apiService.parseStatistics(statsJson)
+        assertTrue(stats != null)
+        assertEquals(54, stats!!.possessionHome)
+        assertEquals(46, stats.possessionAway)
+        assertEquals(10, stats.shotsOnTargetHome)
+        assertEquals(9, stats.shotsOnTargetAway)
+        assertEquals(11, stats.cornersHome)
+        assertEquals(4, stats.cornersAway)
+
+        val zeroJson = """{"Stat":[{"Tnb":1,"Pss":0,"Shon":0,"Cos":0},{"Tnb":2,"Pss":0,"Shon":0,"Cos":0}]}"""
+        assertNull(apiService.parseStatistics(zeroJson))
+    }
+
+    @Test
+    fun parseLineup_parsesFormationsStartingXIAndCoaches() {
+        val lineupJson = """
+            {
+              "Eid": "1883580",
+              "Lu": [
+                {
+                  "Tnb": 1,
+                  "Fo": [4, 3, 3],
+                  "Ps": [
+                    {"Fn": "David", "Ln": "Raya", "Pos": 1, "Snu": 22},
+                    {"Fn": "Bukayo", "Ln": "Saka", "Pos": 4, "Snu": 7},
+                    {"Fn": "Bench", "Ln": "Player", "Pos": 5, "Snu": 99},
+                    {"Fn": "Mikel", "Ln": "Arteta", "Pos": 10, "Pon": "COACH"}
+                  ]
+                },
+                {
+                  "Tnb": 2,
+                  "Fo": [4, 2, 3, 1],
+                  "Ps": [
+                    {"Fn": "Robert", "Ln": "Sanchez", "Pos": 1, "Snu": 1},
+                    {"Fn": "Cole", "Ln": "Palmer", "Pos": 3, "Snu": 20},
+                    {"Fn": "Enzo", "Ln": "Maresca", "Pos": 10, "Pon": "COACH"}
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val lineup = apiService.parseLineup(lineupJson)
+        assertTrue(lineup != null)
+        assertEquals("4-3-3", lineup!!.homeFormation)
+        assertEquals("4-2-3-1", lineup.awayFormation)
+        assertEquals(listOf("22. David Raya", "7. Bukayo Saka"), lineup.homeStarting)
+        assertEquals(listOf("1. Robert Sanchez", "20. Cole Palmer"), lineup.awayStarting)
+        assertEquals("Mikel Arteta", lineup.homeCoach)
+        assertEquals("Enzo Maresca", lineup.awayCoach)
+    }
 }
