@@ -12,8 +12,13 @@ import json
 import os
 import sys
 
+HOST = "127.0.0.1"
 PORT = 7788
 ADB_PATH = "/opt/homebrew/share/android-commandlinetools/platform-tools/adb"
+ALLOWED_KEYCODES = {3, 4, 19, 20, 21, 22, 23, 24, 25, 66}
+ALLOWED_SPORTS = {"soccer", "basketball", "tennis"}
+ALLOWED_HOSTS = {f"localhost:{PORT}", f"127.0.0.1:{PORT}"}
+ALLOWED_ORIGINS = {f"http://localhost:{PORT}", f"http://127.0.0.1:{PORT}"}
 
 HTML_CONTENT = """<!DOCTYPE html>
 <html lang="vi">
@@ -286,18 +291,18 @@ HTML_CONTENT = """<!DOCTYPE html>
   <script>
     function sendKey(code) {
       if (navigator.vibrate) navigator.vibrate(20);
-      fetch('/key?code=' + code)
+      fetch('/key?code=' + encodeURIComponent(code), { method: 'POST' })
         .catch(err => console.error('Error sending key:', err));
     }
 
     function restartApp() {
-      fetch('/restart')
+      fetch('/restart', { method: 'POST' })
         .then(() => alert('Đang khởi động lại ứng dụng LiveSport77 trên TV...'))
         .catch(err => console.error(err));
     }
 
     function switchToSport(sport) {
-      fetch('/sport?type=' + sport)
+      fetch('/sport?type=' + encodeURIComponent(sport), { method: 'POST' })
         .catch(err => console.error(err));
     }
 
@@ -322,70 +327,99 @@ class RemoteHandler(http.server.BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         pass  # Quiet logs
 
+    def _send_security_headers(self):
+        self.send_header("X-Content-Type-Options", "nosniff")
+        self.send_header("X-Frame-Options", "DENY")
+        self.send_header("Referrer-Policy", "no-referrer")
+        self.send_header(
+            "Content-Security-Policy",
+            "default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; frame-ancestors 'none'",
+        )
+
+    def _is_trusted_local_request(self):
+        host = self.headers.get("Host", "")
+        if host not in ALLOWED_HOSTS:
+            return False
+        origin = self.headers.get("Origin")
+        if origin is not None and origin not in ALLOWED_ORIGINS:
+            return False
+        return True
+
     def do_GET(self):
+        parsed = urllib.parse.urlparse(self.path)
+        if parsed.path == "/":
+            self.send_response(200)
+            self.send_header("Content-Type", "text/html; charset=utf-8")
+            self._send_security_headers()
+            self.end_headers()
+            self.wfile.write(HTML_CONTENT.encode("utf-8"))
+        else:
+            self.send_json({"status": "error", "message": "Not found"}, 404)
+
+    def do_POST(self):
+        if not self._is_trusted_local_request():
+            self.send_json({"status": "error", "message": "Forbidden"}, 403)
+            return
+
         parsed = urllib.parse.urlparse(self.path)
         path = parsed.path
         query = urllib.parse.parse_qs(parsed.query)
 
-        if path == "/":
-            self.send_response(200)
-            self.send_header("Content-Type", "text/html; charset=utf-8")
-            self.end_headers()
-            self.wfile.write(HTML_CONTENT.encode("utf-8"))
-
-        elif path == "/key":
-            code = query.get("code", ["23"])[0]
+        if path == "/key":
+            raw_code = query.get("code", [""])[0]
             try:
-                subprocess.run([ADB_PATH, "shell", "input", "keyevent", code], timeout=3)
-                self.send_json({"status": "ok", "key": code})
-            except Exception as e:
-                self.send_json({"status": "error", "message": str(e)}, 500)
+                keycode = int(raw_code)
+            except ValueError:
+                self.send_json({"status": "error", "message": "Invalid keycode"}, 400)
+                return
+            if keycode not in ALLOWED_KEYCODES:
+                self.send_json({"status": "error", "message": "Disallowed keycode"}, 400)
+                return
+            try:
+                subprocess.run([ADB_PATH, "shell", "input", "keyevent", str(keycode)], timeout=3, check=True)
+                self.send_json({"status": "ok", "key": keycode})
+            except Exception:
+                self.send_json({"status": "error", "message": "ADB command failed"}, 500)
 
         elif path == "/restart":
             try:
-                subprocess.run([ADB_PATH, "shell", "am", "force-stop", "com.livesport77.tv"], timeout=3)
-                subprocess.run([ADB_PATH, "shell", "am", "start", "-n", "com.livesport77.tv/.MainActivity"], timeout=3)
+                subprocess.run([ADB_PATH, "shell", "am", "force-stop", "com.livesport77.tv"], timeout=3, check=True)
+                subprocess.run([ADB_PATH, "shell", "am", "start", "-n", "com.livesport77.tv/.MainActivity"], timeout=3, check=True)
                 self.send_json({"status": "ok", "action": "restart"})
-            except Exception as e:
-                self.send_json({"status": "error", "message": str(e)}, 500)
+            except Exception:
+                self.send_json({"status": "error", "message": "ADB command failed"}, 500)
 
         elif path == "/sport":
-            stype = query.get("type", ["soccer"])[0]
+            stype = query.get("type", [""])[0]
+            if stype not in ALLOWED_SPORTS:
+                self.send_json({"status": "error", "message": "Invalid sport type"}, 400)
+                return
             try:
-                # Key sequence to focus header tabs
-                # Navigate: UP to header, then LEFT or RIGHT to select tab
                 if stype == "soccer":
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "19"], timeout=2) # UP
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "21"], timeout=2) # LEFT
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "21"], timeout=2) # LEFT
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "66"], timeout=2) # ENTER
+                    seq = ["19", "21", "21", "66"]
                 elif stype == "basketball":
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "19"], timeout=2) # UP
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "21"], timeout=2) # LEFT
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "22"], timeout=2) # RIGHT
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "66"], timeout=2) # ENTER
-                elif stype == "tennis":
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "19"], timeout=2) # UP
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "22"], timeout=2) # RIGHT
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "22"], timeout=2) # RIGHT
-                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", "66"], timeout=2) # ENTER
+                    seq = ["19", "21", "22", "66"]
+                else:
+                    seq = ["19", "22", "22", "66"]
+                for key in seq:
+                    subprocess.run([ADB_PATH, "shell", "input", "keyevent", key], timeout=2, check=True)
                 self.send_json({"status": "ok", "sport": stype})
-            except Exception as e:
-                self.send_json({"status": "error", "message": str(e)}, 500)
+            except Exception:
+                self.send_json({"status": "error", "message": "ADB command failed"}, 500)
         else:
-            self.send_response(404)
-            self.end_headers()
+            self.send_json({"status": "error", "message": "Not found"}, 404)
 
     def send_json(self, data, code=200):
         self.send_response(code)
         self.send_header("Content-Type", "application/json")
+        self._send_security_headers()
         self.end_headers()
         self.wfile.write(json.dumps(data).encode("utf-8"))
 
 def main():
     socketserver.TCPServer.allow_reuse_address = True
-    with socketserver.TCPServer(("", PORT), RemoteHandler) as httpd:
-        print(f"Remote Server running at http://localhost:{PORT}")
+    with socketserver.TCPServer((HOST, PORT), RemoteHandler) as httpd:
+        print(f"Remote Server running at http://{HOST}:{PORT}")
         httpd.serve_forever()
 
 if __name__ == "__main__":

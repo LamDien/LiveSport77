@@ -3,6 +3,7 @@ package com.livesport77.tv.viewmodel
 import androidx.compose.runtime.Immutable
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.livesport77.tv.data.api.LiveScoreApiService
 import com.livesport77.tv.model.*
 import com.livesport77.tv.repository.SportsRepository
 import com.livesport77.tv.repository.SportsRepositoryImpl
@@ -193,10 +194,14 @@ class SportsViewModel(
                     }
                     val grouped = groupMatchesByLeague(filtered)
                     _uiState.update { current ->
+                        val refreshedActive = current.activeMatch?.let { active ->
+                            updatedMatches.find { it.id == active.id }?.copy(events = active.events) ?: active
+                        }
                         current.copy(
                             matches = updatedMatches,
                             filteredMatches = filtered,
-                            groupedLeagues = grouped
+                            groupedLeagues = grouped,
+                            activeMatch = refreshedActive
                         )
                     }
                 }
@@ -222,17 +227,20 @@ class SportsViewModel(
         }
     }
 
-    private fun computeDateInfo(offset: Int): Triple<String, String, String> {
-        val cal = Calendar.getInstance(TimeZone.getDefault())
+    internal fun computeDateInfo(offset: Int): Triple<String, String, String> {
+        val hanoiTz = LiveScoreApiService.HANOI_TIMEZONE
+        val cal = Calendar.getInstance(hanoiTz)
         cal.add(Calendar.DAY_OF_YEAR, offset)
 
         val apiFormat = SimpleDateFormat("yyyyMMdd", Locale.US).apply {
-            timeZone = TimeZone.getDefault()
+            timeZone = hanoiTz
         }
         val apiDate = apiFormat.format(cal.time)
 
         // Day of month for calendar icon
-        val dayOfMonthFormat = SimpleDateFormat("dd", Locale.getDefault())
+        val dayOfMonthFormat = SimpleDateFormat("dd", Locale.US).apply {
+            timeZone = hanoiTz
+        }
         val dayOfMonth = dayOfMonthFormat.format(cal.time)
 
         val displayDate = when (offset) {
@@ -240,7 +248,9 @@ class SportsViewModel(
             -1 -> "Yesterday"
             1 -> "Tomorrow"
             else -> {
-                val userFormat = SimpleDateFormat("EEE, dd MMM", Locale.US)
+                val userFormat = SimpleDateFormat("EEE, dd MMM", Locale.US).apply {
+                    timeZone = hanoiTz
+                }
                 userFormat.format(cal.time)
             }
         }

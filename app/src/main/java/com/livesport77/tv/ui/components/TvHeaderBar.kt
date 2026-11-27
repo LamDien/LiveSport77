@@ -110,33 +110,17 @@ fun TvHeaderBar(
             }
         }
 
-        // Right side: Remote Hint Pill & Digital Clock
+        // Right side: Hanoi Digital Clock (fits cleanly on both TV and tablets)
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Box(
-                modifier = Modifier
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Color(0xFF1E2433))
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
-            ) {
-                Text(
-                    text = "🎮 Remote",
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        color = TvFocusGold,
-                        fontSize = 11.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                )
-            }
-
             Text(
                 text = currentTime,
                 style = MaterialTheme.typography.titleLarge.copy(
                     color = TvTextPrimary,
                     fontWeight = FontWeight.Bold,
-                    fontSize = 18.sp
+                    fontSize = 16.sp
                 ),
                 maxLines = 1,
                 softWrap = false

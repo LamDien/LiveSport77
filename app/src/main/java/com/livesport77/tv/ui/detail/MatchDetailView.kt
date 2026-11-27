@@ -12,6 +12,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.tv.material3.Button
@@ -115,11 +117,13 @@ fun MatchDetailView(
             // Teams & Big Score
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceAround,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 // Home Team
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     DetailTeamLogo(
                         logoUrl = match.homeTeam.logoUrl,
                         emoji = match.homeTeam.iconEmoji,
@@ -129,33 +133,46 @@ fun MatchDetailView(
                     Text(
                         text = match.homeTeam.name,
                         style = MaterialTheme.typography.headlineMedium.copy(
-                            fontSize = 18.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = TvTextPrimary
-                        )
+                        ),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(text = "Chủ nhà", style = MaterialTheme.typography.labelSmall)
                 }
 
                 // Big Score Display
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.padding(horizontal = 10.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     Text(
-                        text = if (match.status == MatchStatus.SCHEDULED) "- vs -" else "${match.score.home} - ${match.score.away}",
+                        text = if (match.status == MatchStatus.SCHEDULED) "VS" else "${match.score.home} - ${match.score.away}",
                         style = MaterialTheme.typography.displayMedium.copy(
-                            fontSize = 42.sp,
+                            fontSize = 36.sp,
                             fontWeight = FontWeight.Black,
                             color = TvFocusGold,
                             letterSpacing = 2.sp
-                        )
+                        ),
+                        maxLines = 1,
+                        softWrap = false
                     )
                     Text(
-                        text = match.score.periodInfo,
-                        style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted)
+                        text = if (match.status == MatchStatus.SCHEDULED) "${match.startTime} (HN)" else match.statusDisplay,
+                        style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted),
+                        maxLines = 1,
+                        softWrap = false
                     )
                 }
 
                 // Away Team
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                Column(
+                    modifier = Modifier.weight(1f),
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
                     DetailTeamLogo(
                         logoUrl = match.awayTeam.logoUrl,
                         emoji = match.awayTeam.iconEmoji,
@@ -165,10 +182,13 @@ fun MatchDetailView(
                     Text(
                         text = match.awayTeam.name,
                         style = MaterialTheme.typography.headlineMedium.copy(
-                            fontSize = 18.sp,
+                            fontSize = 15.sp,
                             fontWeight = FontWeight.Bold,
                             color = TvTextPrimary
-                        )
+                        ),
+                        textAlign = TextAlign.Center,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(text = "Đội khách", style = MaterialTheme.typography.labelSmall)
                 }
@@ -233,6 +253,7 @@ fun MatchDetailView(
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
                                 Row(
+                                    modifier = Modifier.weight(1f),
                                     verticalAlignment = Alignment.CenterVertically,
                                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
@@ -241,21 +262,42 @@ fun MatchDetailView(
                                         style = MaterialTheme.typography.labelSmall.copy(
                                             color = TvFocusGold,
                                             fontWeight = FontWeight.Bold
-                                        )
+                                        ),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
-                                    Text(
-                                        text = event.playerName,
-                                        style = MaterialTheme.typography.bodyMedium.copy(
-                                            color = TvTextPrimary,
-                                            fontWeight = FontWeight.Medium,
-                                            fontSize = 13.sp
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = event.playerName,
+                                            style = MaterialTheme.typography.bodyMedium.copy(
+                                                color = TvTextPrimary,
+                                                fontWeight = FontWeight.Medium,
+                                                fontSize = 13.sp
+                                            ),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
                                         )
-                                    )
+                                        event.detail?.takeIf { it.contains("Kiến tạo") || it.contains("Thay ") }?.let { subDetail ->
+                                            val compactDetail = subDetail.substringAfter("· ", subDetail)
+                                            Text(
+                                                text = compactDetail,
+                                                style = MaterialTheme.typography.labelSmall.copy(
+                                                    color = TvTextMuted,
+                                                    fontSize = 10.sp
+                                                ),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                    }
                                 }
                                 event.scoreAtEvent?.let {
+                                    Spacer(modifier = Modifier.width(6.dp))
                                     Text(
                                         text = it,
-                                        style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted)
+                                        style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted),
+                                        maxLines = 1,
+                                        softWrap = false
                                     )
                                 }
                             }
@@ -285,13 +327,16 @@ fun MatchDetailView(
 
                 val stats = match.stats ?: MatchStats()
 
+                val shotsTotal = (stats.shotsOnTargetHome + stats.shotsOnTargetAway).coerceAtLeast(1)
+                val cornersTotal = (stats.cornersHome + stats.cornersAway).coerceAtLeast(1)
+
                 Column(
                     modifier = Modifier.weight(1f),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     StatBar(title = "Kiểm soát bóng", homeVal = "${stats.possessionHome}%", awayVal = "${stats.possessionAway}%", homePercent = stats.possessionHome / 100f)
-                    StatBar(title = "Sút trúng đích", homeVal = "${stats.shotsOnTargetHome}", awayVal = "${stats.shotsOnTargetAway}", homePercent = 0.65f)
-                    StatBar(title = "Phạt góc", homeVal = "${stats.cornersHome}", awayVal = "${stats.cornersAway}", homePercent = 0.70f)
+                    StatBar(title = "Sút trúng đích", homeVal = "${stats.shotsOnTargetHome}", awayVal = "${stats.shotsOnTargetAway}", homePercent = stats.shotsOnTargetHome.toFloat() / shotsTotal)
+                    StatBar(title = "Phạt góc", homeVal = "${stats.cornersHome}", awayVal = "${stats.cornersAway}", homePercent = stats.cornersHome.toFloat() / cornersTotal)
                 }
 
                 // Lineup & Fullscreen Action Row

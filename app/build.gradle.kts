@@ -21,8 +21,8 @@ android {
         applicationId = "com.livesport77.tv"
         minSdk = 24
         targetSdk = 34
-        versionCode = 100
-        versionName = "1.0.0"
+        versionCode = 110
+        versionName = "1.1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -30,12 +30,27 @@ android {
         }
     }
 
+    val releaseStorePath = keystoreProperties.getProperty("storeFile")
+        ?: System.getenv("LIVESPORT_KEYSTORE_PATH")
+    val releaseStorePassword = keystoreProperties.getProperty("storePassword")
+        ?: System.getenv("LIVESPORT_STORE_PASSWORD")
+    val releaseKeyAlias = keystoreProperties.getProperty("keyAlias")
+        ?: System.getenv("LIVESPORT_KEY_ALIAS")
+    val releaseKeyPassword = keystoreProperties.getProperty("keyPassword")
+        ?: System.getenv("LIVESPORT_KEY_PASSWORD")
+    val hasReleaseSigning = !releaseStorePath.isNullOrBlank() &&
+        !releaseStorePassword.isNullOrBlank() &&
+        !releaseKeyAlias.isNullOrBlank() &&
+        !releaseKeyPassword.isNullOrBlank()
+
     signingConfigs {
-        create("release") {
-            storeFile = file(keystoreProperties.getProperty("storeFile") ?: "../keystore/livesport77.jks")
-            storePassword = keystoreProperties.getProperty("storePassword") ?: ""
-            keyAlias = keystoreProperties.getProperty("keyAlias") ?: "livesport77"
-            keyPassword = keystoreProperties.getProperty("keyPassword") ?: ""
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseStorePath!!)
+                storePassword = releaseStorePassword
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPassword
+            }
         }
     }
 
@@ -47,11 +62,23 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
-            signingConfig = signingConfigs.getByName("release")
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
         }
         debug {
-            // Also sign debug with the persistent release key so updates overwrite without conflict
-            signingConfig = signingConfigs.getByName("release")
+            // Sign debug with local release key when configured so updates overwrite without conflict
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
+    }
+
+    applicationVariants.all {
+        val variant = this
+        outputs.all {
+            val output = this as com.android.build.gradle.internal.api.BaseVariantOutputImpl
+            output.outputFileName = "LiveSport77-v${variant.versionName}-${variant.buildType.name}.apk"
         }
     }
 
@@ -113,6 +140,7 @@ dependencies {
     // Testing
     testImplementation("junit:junit:4.13.2")
     testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.8.1")
+    testImplementation("org.json:json:20240303")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
     debugImplementation("androidx.compose.ui:ui-tooling")

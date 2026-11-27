@@ -85,7 +85,7 @@ def process_assets(icon_path, banner_path, res_dir):
 
 if __name__ == "__main__":
     import sys
-    base_dir = "/Users/hoanng/AIAgent/LiveSport"
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
     icon = os.path.join(base_dir, "art", "livesport77_icon_3d.png")
     banner = os.path.join(base_dir, "art", "livesport77_banner_3d.png")
     res = os.path.join(base_dir, "app", "src", "main", "res")

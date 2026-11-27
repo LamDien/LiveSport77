@@ -20,6 +20,16 @@ captures/
 /.android/
 /.kotlin/
 
+# Signing credentials & keystores (never commit secrets)
+keystore.properties
+keystore/*.jks
+*.jks
+*.keystore
+
+# Python cache
+__pycache__/
+*.pyc
+
 # Output release directory (we keep docs and source code)
 /app/build/outputs/
 

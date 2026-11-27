@@ -15,3 +15,10 @@
 -keep class coil.** { *; }
 -dontwarn coil.**
 
+# Strip verbose/debug/info logs in release builds to avoid leaking internal URLs or state
+-assumenosideeffects class android.util.Log {
+    public static int v(...);
+    public static int d(...);
+    public static int i(...);
+}
+

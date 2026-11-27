@@ -7,9 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalFocusManager
 import com.livesport77.tv.ui.home.HomeScreen
-import com.livesport77.tv.ui.navigation.TvKeyEventHandler
 import com.livesport77.tv.ui.theme.LiveSport77TvTheme
 import com.livesport77.tv.viewmodel.SportsViewModel
 

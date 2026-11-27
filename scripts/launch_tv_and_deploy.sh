@@ -1,17 +1,20 @@
 #!/bin/bash
 set -e
 
+PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export ANDROID_HOME=/opt/homebrew/share/android-commandlinetools
 export ANDROID_SDK_ROOT=/opt/homebrew/share/android-commandlinetools
-export ANDROID_AVD_HOME=/Users/hoanng/AIAgent/LiveSport/.android/avd
-export ANDROID_USER_HOME=/Users/hoanng/AIAgent/LiveSport/.android
+export ANDROID_AVD_HOME="$PROJECT_DIR/.android/avd"
+export ANDROID_USER_HOME="$PROJECT_DIR/.android"
 export PATH=$ANDROID_HOME/emulator:$ANDROID_HOME/platform-tools:$PATH
 
 echo "============================================================"
 echo "🚀 LIVESPORT77 ANDROID TV: KHỞI ĐỘNG VÀ DEPLOY APK"
 echo "============================================================"
 
-APK_PATH="/Users/hoanng/AIAgent/LiveSport/app/build/outputs/apk/debug/app-debug.apk"
+APK_PATH=$(ls -t "$PROJECT_DIR"/app/build/outputs/apk/release/LiveSport77-v*-release.apk \
+    "$PROJECT_DIR"/app/build/outputs/apk/debug/LiveSport77-v*-debug.apk \
+    "$PROJECT_DIR"/app/build/outputs/apk/debug/app-debug.apk 2>/dev/null | head -n 1 || true)
 
 if [ ! -f "$APK_PATH" ]; then
     echo "❌ Không tìm thấy file APK tại: $APK_PATH"
