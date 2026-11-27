@@ -521,6 +521,64 @@ fun FullscreenScoreboardModal(
                     }
                 }
 
+                // Lineups Section (Đội hình dự kiến / Đội hình thi đấu)
+                val isPreMatch = match.status == MatchStatus.SCHEDULED || match.status == MatchStatus.POSTPONED
+                val lineupTitle = if (isPreMatch) "👥 ĐỘI HÌNH DỰ KIẾN" else "👥 ĐỘI HÌNH THI ĐẤU"
+                val lineup = match.lineup
+                val hasPlayers = lineup != null && (lineup.homeStarting.isNotEmpty() || lineup.awayStarting.isNotEmpty())
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(14.dp))
+                        .background(TvSurfaceVariant)
+                        .padding(horizontal = 16.dp, vertical = 14.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    Text(
+                        text = lineupTitle,
+                        style = MaterialTheme.typography.labelSmall.copy(
+                            color = TvNeonGreen,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp
+                        )
+                    )
+
+                    if (!hasPlayers) {
+                        Text(
+                            text = if (isPreMatch) {
+                                "Chưa công bố đội hình dự kiến. Đội hình ra sân thường được cập nhật trước giờ bóng lăn 45–60 phút."
+                            } else {
+                                "Chưa có dữ liệu đội hình cho trận đấu này."
+                            },
+                            style = MaterialTheme.typography.bodySmall.copy(
+                                color = TvTextMuted,
+                                fontSize = 12.sp
+                            )
+                        )
+                    } else {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(14.dp)
+                        ) {
+                            LineupTeamColumn(
+                                teamName = match.homeTeam.name,
+                                formation = lineup!!.homeFormation,
+                                players = lineup.homeStarting,
+                                coach = lineup.homeCoach,
+                                modifier = Modifier.weight(1f)
+                            )
+                            LineupTeamColumn(
+                                teamName = match.awayTeam.name,
+                                formation = lineup.awayFormation,
+                                players = lineup.awayStarting,
+                                coach = lineup.awayCoach,
+                                modifier = Modifier.weight(1f)
+                            )
+                        }
+                    }
+                }
+
                 // Touch + D-Pad OK Close Button (replaces androidx.tv.material3.Button for reliable touch taps)
                 val okInteraction = remember { MutableInteractionSource() }
                 val okFocused by okInteraction.collectIsFocusedAsState()
@@ -550,6 +608,86 @@ fun FullscreenScoreboardModal(
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun LineupTeamColumn(
+    teamName: String,
+    formation: String,
+    players: List<String>,
+    coach: String,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .clip(RoundedCornerShape(10.dp))
+            .background(TvSurface)
+            .padding(horizontal = 12.dp, vertical = 10.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = teamName,
+                style = MaterialTheme.typography.labelMedium.copy(
+                    color = TvFocusGold,
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 12.sp
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            if (formation.isNotBlank()) {
+                Spacer(modifier = Modifier.width(6.dp))
+                Text(
+                    text = formation,
+                    style = MaterialTheme.typography.labelSmall.copy(
+                        color = TvNeonGreen,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 11.sp
+                    ),
+                    maxLines = 1,
+                    softWrap = false
+                )
+            }
+        }
+
+        if (players.isEmpty()) {
+            Text(
+                text = "Chưa có danh sách cầu thủ",
+                style = MaterialTheme.typography.bodySmall.copy(color = TvTextMuted, fontSize = 11.sp)
+            )
+        } else {
+            players.forEach { player ->
+                Text(
+                    text = player,
+                    style = MaterialTheme.typography.bodySmall.copy(
+                        color = TvTextPrimary,
+                        fontSize = 12.sp
+                    ),
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+
+        if (coach.isNotBlank()) {
+            Spacer(modifier = Modifier.height(2.dp))
+            Text(
+                text = "HLV: $coach",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = TvTextMuted,
+                    fontSize = 10.sp
+                ),
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
         }
     }
 }

@@ -244,7 +244,11 @@ class SportsViewModel(
                     val grouped = groupMatchesByLeague(filtered)
                     _uiState.update { current ->
                         val refreshedActive = current.activeMatch?.let { active ->
-                            updatedMatches.find { it.id == active.id }?.copy(events = active.events) ?: active
+                            updatedMatches.find { it.id == active.id }?.copy(
+                                events = active.events,
+                                stats = active.stats,
+                                lineup = active.lineup
+                            ) ?: active
                         }
                         current.copy(
                             matches = updatedMatches,
