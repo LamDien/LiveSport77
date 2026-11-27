@@ -44,7 +44,7 @@ class SportsRepositoryImpl(
             Log.d("SportsRepository", "Loaded ${liveMatches.size} matches from LiveScore CDN")
             liveMatches
         } catch (e: Exception) {
-            Log.e("SportsRepository", "Error fetching from LiveScore API: ${e.message}", e)
+            Log.e("SportsRepository", "Error fetching from LiveScore API: ${e.javaClass.simpleName}")
             emptyList()
         }
     }
@@ -66,7 +66,7 @@ class SportsRepositoryImpl(
             }
             incidents
         } catch (e: Exception) {
-            Log.w("SportsRepository", "Failed to fetch incidents for match ${match.id}: ${e.message}")
+            Log.w("SportsRepository", "Failed to fetch incidents: ${e.javaClass.simpleName}")
             emptyList()
         }
     }

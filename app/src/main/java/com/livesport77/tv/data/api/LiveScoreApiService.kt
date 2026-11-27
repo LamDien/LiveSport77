@@ -589,7 +589,7 @@ class LiveScoreApiService {
                 }
             }
         } catch (e: Exception) {
-            Log.e("LiveScoreApi", "Error parsing LiveScore JSON: ${e.message}", e)
+            Log.e("LiveScoreApi", "Error parsing LiveScore JSON: ${e.javaClass.simpleName}")
         }
 
         // Preserve LiveScore.com's natural broadcast stage order (FA Cup, LaLiga 2, etc.)
