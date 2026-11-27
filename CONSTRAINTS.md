@@ -1,6 +1,6 @@
 # Project Constraints & Quality Bar (LiveSport77)
 
-Established per `constraint-driven-development` and `definition-of-done`. These thresholds are enforced for all changes and must not be silently lowered.
+Established per **Addy Osmani's `agent-skills`** (`using-agent-skills`, `constraint-driven-development`, `incremental-implementation`, `test-driven-development`, `security-and-hardening`, `git-workflow-and-versioning`, and `definition-of-done`). **Standing Rule:** All changes on this repository MUST follow Addy Osmani's `agent-skills` workflow and quality thresholds without silently lowering them.
 
 ## 1. Runtime & Resource Budget
 - **Memory (RAM):** < 60 MB steady-state on Android TV / tablet (Coil image memory cache capped at 10% / ~15 MB in `LiveSportApp`).

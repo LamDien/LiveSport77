@@ -7,9 +7,9 @@ import androidx.compose.runtime.Immutable
  */
 enum class SportType(val id: String, val displayName: String, val icon: String) {
     FOOTBALL("football", "Football", "⚽"),
-    HOCKEY("hockey", "Hockey", "🏑"),
-    BASKETBALL("basketball", "Basketball", "🏀"),
     TENNIS("tennis", "Tennis", "🎾"),
+    BASKETBALL("basketball", "Basketball", "🏀"),
+    HOCKEY("hockey", "Hockey", "🏑"),
     CRICKET("cricket", "Cricket", "🏏")
 }
 

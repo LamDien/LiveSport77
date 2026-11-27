@@ -79,7 +79,7 @@ fun TvTabButton(
     Box(
         modifier = modifier
             .scale(scale)
-            .padding(horizontal = 3.dp)
+            .padding(horizontal = 2.dp)
             .defaultMinSize(minHeight = 36.dp)
             .clip(shape)
             .background(bgColor)
@@ -90,16 +90,16 @@ fun TvTabButton(
             )
             .focusable(interactionSource = interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() }
-            .padding(horizontal = 14.dp, vertical = 8.dp),
+            .padding(horizontal = 11.dp, vertical = 7.dp),
         contentAlignment = Alignment.Center
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "$icon  $title",
+                text = "$icon $title",
                 style = MaterialTheme.typography.titleMedium.copy(
-                    fontSize = 13.sp,
+                    fontSize = 12.sp,
                     fontWeight = if (isSelected || isHighlighted) FontWeight.Bold else FontWeight.SemiBold,
                     color = textColor
                 ),

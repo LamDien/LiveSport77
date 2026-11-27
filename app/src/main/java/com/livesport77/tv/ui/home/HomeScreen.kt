@@ -2,8 +2,12 @@ package com.livesport77.tv.ui.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -321,44 +325,21 @@ fun FullscreenScoreboardModal(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(8.dp))
+                            .background(if (match.status == MatchStatus.LIVE) TvLiveRed else TvSurfaceVariant)
+                            .padding(horizontal = 12.dp, vertical = 5.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .clip(RoundedCornerShape(8.dp))
-                                .background(if (match.status == MatchStatus.LIVE) TvLiveRed else TvSurfaceVariant)
-                                .padding(horizontal = 12.dp, vertical = 5.dp)
-                        ) {
-                            Text(
-                                text = if (match.status == MatchStatus.SCHEDULED) "${match.startTime} (Giờ HN)" else match.statusDisplay,
-                                style = MaterialTheme.typography.labelMedium.copy(
-                                    color = Color.White,
-                                    fontWeight = FontWeight.Bold
-                                ),
-                                maxLines = 1,
-                                softWrap = false
-                            )
-                        }
-
-                        Box(
-                            modifier = Modifier
-                                .size(36.dp)
-                                .clip(CircleShape)
-                                .background(TvSurfaceVariant)
-                                .clickable { onClose() },
-                            contentAlignment = Alignment.Center
-                        ) {
-                            Text(
-                                text = "✕",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    color = TvTextPrimary,
-                                    fontWeight = FontWeight.Bold,
-                                    fontSize = 15.sp
-                                )
-                            )
-                        }
+                        Text(
+                            text = if (match.status == MatchStatus.SCHEDULED) "${match.startTime} (Giờ HN)" else match.statusDisplay,
+                            style = MaterialTheme.typography.labelMedium.copy(
+                                color = Color.White,
+                                fontWeight = FontWeight.Bold
+                            ),
+                            maxLines = 1,
+                            softWrap = false
+                        )
                     }
                 }
 
@@ -521,17 +502,33 @@ fun FullscreenScoreboardModal(
                     }
                 }
 
-                // Back / Close Button
-                Button(
-                    onClick = onClose,
-                    colors = ButtonDefaults.colors(
-                        containerColor = TvFocusGold,
-                        contentColor = Color.Black
-                    ),
-                    shape = ButtonDefaults.shape(RoundedCornerShape(12.dp)),
-                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
+                // Touch + D-Pad OK Close Button (replaces androidx.tv.material3.Button for reliable touch taps)
+                val okInteraction = remember { MutableInteractionSource() }
+                val okFocused by okInteraction.collectIsFocusedAsState()
+                val okPressed by okInteraction.collectIsPressedAsState()
+                Box(
+                    modifier = Modifier
+                        .defaultMinSize(minWidth = 140.dp, minHeight = 44.dp)
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (okPressed) TvFocusGold.copy(alpha = 0.8f) else TvFocusGold)
+                        .border(
+                            width = if (okFocused) 2.dp else 0.dp,
+                            color = if (okFocused) Color.White else Color.Transparent,
+                            shape = RoundedCornerShape(12.dp)
+                        )
+                        .focusable(interactionSource = okInteraction)
+                        .clickable(interactionSource = okInteraction, indication = null) { onClose() }
+                        .padding(horizontal = 32.dp, vertical = 10.dp),
+                    contentAlignment = Alignment.Center
                 ) {
-                    Text(text = "Đóng", fontWeight = FontWeight.Bold)
+                    Text(
+                        text = "OK",
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            color = Color.Black,
+                            fontWeight = FontWeight.Black,
+                            fontSize = 15.sp
+                        )
+                    )
                 }
             }
         }
