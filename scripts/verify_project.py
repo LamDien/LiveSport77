@@ -1,33 +1,33 @@
 #!/usr/bin/env python3
 """
 Test Suite: LiveSport77 Android TV Verification Runner
-Verifies architectural integrity, Manifest compliance, Kotlin data models,
-and memory optimization configurations.
+Verifies architectural integrity, Manifest & security compliance, Kotlin data models,
+and memory/build optimization configurations.
 """
 
 import os
-import re
-import xml.etree.ElementTree as ET
 
 def test_manifest_compliance():
-    print("▶ Checking Android TV Manifest Compliance...")
+    print("▶ Checking Android TV Manifest & Security Compliance...")
     manifest_path = "app/src/main/AndroidManifest.xml"
     assert os.path.exists(manifest_path), "AndroidManifest.xml not found!"
-    
+
     with open(manifest_path, "r", encoding="utf-8") as f:
         content = f.read()
 
-    # Must contain LEANBACK_LAUNCHER
+    # Android TV compliance
     assert "android.intent.category.LEANBACK_LAUNCHER" in content, "Missing LEANBACK_LAUNCHER category!"
-    # Must declare leanback feature with required=false for broad TV box compatibility
     assert "android.software.leanback" in content, "Missing android.software.leanback declaration!"
-    # Must declare touchscreen not required
     assert "android.hardware.touchscreen" in content, "Missing android.hardware.touchscreen declaration!"
-    # Must declare TV banner
-    assert "android:banner=\"@drawable/tv_banner\"" in content, "Missing banner attribute in application tag!"
-    # Must be landscape orientation
-    assert "android:screenOrientation=\"landscape\"" in content, "TV Activity must be locked to landscape orientation!"
-    print("  ✓ Manifest is 100% compliant with Google Android TV guidelines.")
+    assert 'android:banner="@drawable/tv_banner"' in content, "Missing banner attribute in application tag!"
+    assert 'android:screenOrientation="landscape"' in content, "TV Activity must be locked to landscape orientation!"
+
+    # Security hardening compliance
+    assert 'android:allowBackup="false"' in content, "allowBackup must be disabled!"
+    assert 'android:usesCleartextTraffic="false"' in content, "Cleartext traffic must be disabled!"
+    assert 'android:networkSecurityConfig="@xml/network_security_config"' in content, "Missing networkSecurityConfig!"
+    assert os.path.exists("app/src/main/res/xml/network_security_config.xml"), "network_security_config.xml not found!"
+    print("  ✓ Manifest is 100% compliant with Google Android TV & Security guidelines.")
 
 def test_ram_and_build_optimizations():
     print("▶ Checking RAM Budget & Build Optimization Settings...")
@@ -44,17 +44,16 @@ def test_ram_and_build_optimizations():
     assert "isShrinkResources = true" in build_content, "Resource shrinking must be enabled"
     assert "androidx.tv:tv-material" in build_content, "Missing Compose TV Material library"
     assert "io.coil-kt:coil-compose" in build_content, "Missing Coil image loader"
-    print("  ✓ R8 minification, Compose TV dependencies, and RAM safeguards verified.")
+    assert "livesport77key" not in build_content, "Hardcoded keystore password detected in build.gradle.kts!"
+    print("  ✓ R8 minification, Compose TV dependencies, and build security verified.")
 
 def test_kotlin_source_files_exist():
-    print("▶ Verifying Core Kotlin Components...")
+    print("▶ Verifying Core Kotlin Components & Unit Tests...")
     expected_files = [
         "app/src/main/java/com/livesport77/tv/LiveSportApp.kt",
         "app/src/main/java/com/livesport77/tv/MainActivity.kt",
         "app/src/main/java/com/livesport77/tv/model/SportsModels.kt",
-        "app/src/main/java/com/livesport77/tv/data/MockSportsDataSource.kt",
-        "app/src/main/java/com/livesport77/tv/data/SmartPollingManager.kt",
-        "app/src/main/java/com/livesport77/tv/data/LiveScoreSimulator.kt",
+        "app/src/main/java/com/livesport77/tv/data/api/LiveScoreApiService.kt",
         "app/src/main/java/com/livesport77/tv/repository/SportsRepository.kt",
         "app/src/main/java/com/livesport77/tv/viewmodel/SportsViewModel.kt",
         "app/src/main/java/com/livesport77/tv/ui/theme/Color.kt",
@@ -67,7 +66,9 @@ def test_kotlin_source_files_exist():
         "app/src/main/java/com/livesport77/tv/ui/detail/MatchDetailView.kt",
         "app/src/main/java/com/livesport77/tv/ui/home/HomeScreen.kt",
         "app/src/main/java/com/livesport77/tv/ui/navigation/TvFocusManager.kt",
-        "app/src/test/java/com/livesport77/tv/SportsRepositoryTest.kt"
+        "app/src/test/java/com/livesport77/tv/LiveScoreApiServiceTest.kt",
+        "app/src/test/java/com/livesport77/tv/SportsRepositoryTest.kt",
+        "app/src/test/java/com/livesport77/tv/SportsViewModelTest.kt",
     ]
     for path in expected_files:
         assert os.path.exists(path), f"Missing source file: {path}"
@@ -88,22 +89,16 @@ def test_data_model_integrity():
     assert "MatchLineup" in content, "Missing MatchLineup data class"
     print("  ✓ Data models are properly annotated with @Immutable and contain rich attributes.")
 
-def test_mock_data_and_simulation():
-    print("▶ Checking Mock Sports Data & Realtime Engine...")
-    data_file = "app/src/main/java/com/livesport77/tv/data/MockSportsDataSource.kt"
-    with open(data_file, "r", encoding="utf-8") as f:
+def test_api_timezone_and_security_guards():
+    print("▶ Checking LiveScore API Hanoi UTC+7 & Security Guards...")
+    api_file = "app/src/main/java/com/livesport77/tv/data/api/LiveScoreApiService.kt"
+    with open(api_file, "r", encoding="utf-8") as f:
         content = f.read()
-    assert "Arsenal" in content and "Chelsea" in content, "Missing Premier League mock data"
-    assert "Real Madrid" in content and "Barcelona" in content, "Missing El Clásico mock data"
-    assert "Lakers" in content and "Warriors" in content, "Missing NBA mock data"
-    assert "Djokovic" in content and "Alcaraz" in content, "Missing Tennis mock data"
-
-    polling_file = "app/src/main/java/com/livesport77/tv/data/SmartPollingManager.kt"
-    with open(polling_file, "r", encoding="utf-8") as f:
-        poll_content = f.read()
-    assert "8_000L" in poll_content, "Live polling interval must be 8 seconds"
-    assert "60_000L" in poll_content, "Idle polling interval must be 60 seconds"
-    print("  ✓ Multi-sport data and Smart Polling time boundaries verified.")
+    assert "Asia/Ho_Chi_Minh" in content, "Must pin Hanoi UTC+7 timezone!"
+    assert "instanceFollowRedirects = false" in content, "Must disable automatic HTTP redirects!"
+    assert "readStreamBounded" in content, "Must bound response stream size to prevent OOM DoS!"
+    assert "buildSafeLogoUrl" in content, "Must sanitize team logo URLs!"
+    print("  ✓ Hanoi UTC+7 alignment and API security guards verified.")
 
 def test_dpad_navigation_handlers():
     print("▶ Checking TV D-Pad Key Event Mappings...")
@@ -126,7 +121,7 @@ def run_all_tests():
     test_ram_and_build_optimizations()
     test_kotlin_source_files_exist()
     test_data_model_integrity()
-    test_mock_data_and_simulation()
+    test_api_timezone_and_security_guards()
     test_dpad_navigation_handlers()
     print("=" * 60)
     print("🎉 ALL TESTS PASSED: 6/6 SUITES SUCCESSFUL! LOGIC & ARCHITECTURE ARE STABLE.")
@@ -134,4 +129,3 @@ def run_all_tests():
 
 if __name__ == "__main__":
     run_all_tests()
-
