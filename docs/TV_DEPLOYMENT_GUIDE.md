@@ -1,13 +1,13 @@
-# Hướng Dẫn Cài Đặt & Triển Khai LiveSport77 Lên Android TV
+# Hướng Dẫn Cài Đặt & Triển Khai LiveSport77 Lên Android TV & Tablet
 
-Tài liệu này hướng dẫn chi tiết cách build và cài đặt ứng dụng **LiveSport77 TV** lên thiết bị thật (Smart TV Sony, Xiaomi, TCL, Casper...) hoặc chạy thử trên Android TV Emulator.
+Tài liệu này hướng dẫn chi tiết cách build và cài đặt ứng dụng **LiveSport77** lên thiết bị thật (Android Tablet, Smart TV Sony, Xiaomi, TCL, Casper...).
 
 ---
 
 ## 1. Yêu Cầu Môi Trường Phát Triển
 - **JDK:** OpenJDK 17 trở lên.
-- **Android SDK:** API 34 (Android 14) với `Android TV ARM/x86 Image`.
-- **Thiết bị TV:** Mọi Smart TV / Android TV Box chạy Android 7.0 (API 24) trở lên.
+- **Android SDK:** API 34/35.
+- **Thiết bị hỗ trợ:** Mọi Android Tablet, Android TV Box hoặc Smart TV chạy Android 7.0 (API 24) trở lên (hỗ trợ đồng thời cảm ứng & D-Pad).
 
 ---
 
