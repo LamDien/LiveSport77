@@ -3,6 +3,27 @@
 All notable changes to **LiveSport77** are documented in this file.
 The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2026-11-27
+
+### Added
+- Full touch + D-Pad parity across tablets and Android TV (`TvFocusCard` selected/pressed states, 36dp touch targets, clickable star favorites, touch-friendly `OK` and `Phóng to` buttons).
+- Interactive League Standings modal (`BXH ›`) fetching real standings from LiveScore CDN `/stage/{sport}/{Ccd}/{Scd}/7.00`.
+- Real match statistics (`/statistics/{sport}/{matchId}`) for LIVE/FINISHED matches and two-team starting XI / predicted lineups (`/lineups/{sport}/{matchId}`) in `FullscreenScoreboardModal` for all team sports (`Football`, `Basketball`, `Hockey`, `Cricket`).
+- Android 12+ `data_extraction_rules.xml` disabling cloud backup and device-to-device transfer.
+- Deterministic `SportsViewModelTest` suite, GitHub Actions CI (`android-ci.yml`), and `docs/RELEASE_CHECKLIST.md`.
+
+### Changed
+- Reordered sports in header banner to `Football → Tennis → Basketball → Hockey → Cricket` and removed `LIVESCORE.COM LIVE` pill so all 5 tabs fit without scrolling.
+- Removed TV emulator launcher (`launch_tv_and_deploy.sh`), virtual remote server (`tv_remote_server.py`), and unused prototype files.
+
+### Fixed
+- Fixed league grouping bug by keying stages on unique `Sid` instead of shared `Scd`.
+- Fixed modal `OK` close button touch handling on tablets.
+- Hidden live stats for unstarted (`SCHEDULED` / `POSTPONED`) matches and disabled lineups for individual sports (`Tennis`).
+
+### Security
+- Added Android 12+ `data_extraction_rules.xml` and removed remaining exception stack trace / raw message logging from `SportsRepository` and `LiveScoreApiService`.
+
 ## [1.1.0] - 2026-11-27
 
 ### Added

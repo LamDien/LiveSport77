@@ -26,7 +26,7 @@ Native Android application built with **Kotlin** and **Jetpack Compose for TV** 
 ./gradlew assembleRelease
 
 # Deploy versioned release APK to connected Android TV / Tablet via ADB
-adb install -r app/build/outputs/apk/release/LiveSport77-v1.1.0-release.apk
+adb install -r app/build/outputs/apk/release/LiveSport77-v1.2.0-release.apk
 adb shell am start -n com.livesport77.tv/.MainActivity
 ```
 
