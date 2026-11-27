@@ -357,7 +357,7 @@ fun MatchDetailView(
                                 )
                             )
                             Text(
-                                text = "Thống kê trực tiếp sẽ cập nhật khi bóng lăn (${match.startTime} HN).",
+                                text = "Thống kê trực tiếp sẽ cập nhật khi trận đấu bắt đầu (${match.startTime} HN).",
                                 style = MaterialTheme.typography.bodySmall.copy(
                                     color = TvTextMuted,
                                     fontSize = 11.sp,
@@ -413,25 +413,31 @@ fun MatchDetailView(
                     }
                 }
 
-                // Lineup hint & Fullscreen Action Row
-                val lineupSummary = match.lineup?.let { lu ->
-                    if (lu.homeFormation.isNotBlank() && lu.awayFormation.isNotBlank()) {
-                        "👥 Sơ đồ: ${lu.homeFormation} vs ${lu.awayFormation}"
-                    } else null
-                } ?: if (isNotStarted) "👥 Xem đội hình dự kiến →" else "👥 Xem đội hình thi đấu →"
+                // Lineup hint (only for sports with team lineups) & Fullscreen Action Row
+                val lineupSummary = if (match.sport.supportsLineups) {
+                    match.lineup?.let { lu ->
+                        if (lu.homeFormation.isNotBlank() && lu.awayFormation.isNotBlank()) {
+                            "👥 Sơ đồ: ${lu.homeFormation} vs ${lu.awayFormation}"
+                        } else null
+                    } ?: if (isNotStarted) "👥 Xem đội hình dự kiến →" else "👥 Xem đội hình thi đấu →"
+                } else {
+                    ""
+                }
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
+                    horizontalArrangement = if (lineupSummary.isNotEmpty()) Arrangement.SpaceBetween else Arrangement.End,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = lineupSummary,
-                        style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontSize = 10.sp),
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false)
-                    )
+                    if (lineupSummary.isNotEmpty()) {
+                        Text(
+                            text = lineupSummary,
+                            style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontSize = 10.sp),
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
+                        )
+                    }
 
                     val fsInteraction = remember { MutableInteractionSource() }
                     val fsFocused by fsInteraction.collectIsFocusedAsState()

@@ -521,60 +521,62 @@ fun FullscreenScoreboardModal(
                     }
                 }
 
-                // Lineups Section (Đội hình dự kiến / Đội hình thi đấu)
-                val isPreMatch = match.status == MatchStatus.SCHEDULED || match.status == MatchStatus.POSTPONED
-                val lineupTitle = if (isPreMatch) "👥 ĐỘI HÌNH DỰ KIẾN" else "👥 ĐỘI HÌNH THI ĐẤU"
-                val lineup = match.lineup
-                val hasPlayers = lineup != null && (lineup.homeStarting.isNotEmpty() || lineup.awayStarting.isNotEmpty())
+                // Lineups Section (only for sports that have team lineups, e.g. Football — never Tennis)
+                if (match.sport.supportsLineups) {
+                    val isPreMatch = match.status == MatchStatus.SCHEDULED || match.status == MatchStatus.POSTPONED
+                    val lineupTitle = if (isPreMatch) "👥 ĐỘI HÌNH DỰ KIẾN" else "👥 ĐỘI HÌNH THI ĐẤU"
+                    val lineup = match.lineup
+                    val hasPlayers = lineup != null && (lineup.homeStarting.isNotEmpty() || lineup.awayStarting.isNotEmpty())
 
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(14.dp))
-                        .background(TvSurfaceVariant)
-                        .padding(horizontal = 16.dp, vertical = 14.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
-                ) {
-                    Text(
-                        text = lineupTitle,
-                        style = MaterialTheme.typography.labelSmall.copy(
-                            color = TvNeonGreen,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 12.sp
-                        )
-                    )
-
-                    if (!hasPlayers) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(14.dp))
+                            .background(TvSurfaceVariant)
+                            .padding(horizontal = 16.dp, vertical = 14.dp),
+                        verticalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
                         Text(
-                            text = if (isPreMatch) {
-                                "Chưa công bố đội hình dự kiến. Đội hình ra sân thường được cập nhật trước giờ bóng lăn 45–60 phút."
-                            } else {
-                                "Chưa có dữ liệu đội hình cho trận đấu này."
-                            },
-                            style = MaterialTheme.typography.bodySmall.copy(
-                                color = TvTextMuted,
+                            text = lineupTitle,
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                color = TvNeonGreen,
+                                fontWeight = FontWeight.Bold,
                                 fontSize = 12.sp
                             )
                         )
-                    } else {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(14.dp)
-                        ) {
-                            LineupTeamColumn(
-                                teamName = match.homeTeam.name,
-                                formation = lineup!!.homeFormation,
-                                players = lineup.homeStarting,
-                                coach = lineup.homeCoach,
-                                modifier = Modifier.weight(1f)
+
+                        if (!hasPlayers) {
+                            Text(
+                                text = if (isPreMatch) {
+                                    "Chưa công bố đội hình dự kiến. Đội hình ra sân thường được cập nhật trước giờ bóng lăn 45–60 phút."
+                                } else {
+                                    "Chưa có dữ liệu đội hình cho trận đấu này."
+                                },
+                                style = MaterialTheme.typography.bodySmall.copy(
+                                    color = TvTextMuted,
+                                    fontSize = 12.sp
+                                )
                             )
-                            LineupTeamColumn(
-                                teamName = match.awayTeam.name,
-                                formation = lineup.awayFormation,
-                                players = lineup.awayStarting,
-                                coach = lineup.awayCoach,
-                                modifier = Modifier.weight(1f)
-                            )
+                        } else {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(14.dp)
+                            ) {
+                                LineupTeamColumn(
+                                    teamName = match.homeTeam.name,
+                                    formation = lineup!!.homeFormation,
+                                    players = lineup.homeStarting,
+                                    coach = lineup.homeCoach,
+                                    modifier = Modifier.weight(1f)
+                                )
+                                LineupTeamColumn(
+                                    teamName = match.awayTeam.name,
+                                    formation = lineup.awayFormation,
+                                    players = lineup.awayStarting,
+                                    coach = lineup.awayCoach,
+                                    modifier = Modifier.weight(1f)
+                                )
+                            }
                         }
                     }
                 }

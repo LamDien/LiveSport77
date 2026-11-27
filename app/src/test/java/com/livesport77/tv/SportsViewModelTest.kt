@@ -270,4 +270,25 @@ class SportsViewModelTest {
         assertEquals(listOf("sched1"), fakeRepo.lineupCalls)
         assertEquals(expectedLineup, vm.uiState.value.activeMatch?.lineup)
     }
+
+    @Test
+    fun nonLineupSport_tennisSkipsLineupFetchCompletely() = runTest(testDispatcher) {
+        val tennisMatch = sampleMatch("t1", sport = SportType.TENNIS, leagueId = "atp", leagueName = "ATP Tour")
+        val fakeRepo = FakeSportsRepository(
+            matchesBySport = mapOf(
+                SportType.FOOTBALL to emptyList(),
+                SportType.TENNIS to listOf(tennisMatch)
+            ),
+            lineupsByMatchId = mapOf("t1" to MatchLineup("4-3-3", "4-3-3"))
+        )
+
+        val vm = SportsViewModel(repository = fakeRepo, enableAutoRefresh = false)
+        advanceUntilIdle()
+        vm.selectSport(SportType.TENNIS)
+        advanceUntilIdle()
+
+        assertFalse(SportType.TENNIS.supportsLineups)
+        assertTrue("Tennis must never fetch team lineups", fakeRepo.lineupCalls.isEmpty())
+        assertEquals(null, vm.uiState.value.activeMatch?.lineup)
+    }
 }

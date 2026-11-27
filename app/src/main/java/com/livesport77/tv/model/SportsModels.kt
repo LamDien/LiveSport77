@@ -5,12 +5,17 @@ import androidx.compose.runtime.Immutable
 /**
  * Supported Sports in LiveSport77
  */
-enum class SportType(val id: String, val displayName: String, val icon: String) {
-    FOOTBALL("football", "Football", "⚽"),
-    TENNIS("tennis", "Tennis", "🎾"),
-    BASKETBALL("basketball", "Basketball", "🏀"),
-    HOCKEY("hockey", "Hockey", "🏑"),
-    CRICKET("cricket", "Cricket", "🏏")
+enum class SportType(
+    val id: String,
+    val displayName: String,
+    val icon: String,
+    val supportsLineups: Boolean = false
+) {
+    FOOTBALL("football", "Football", "⚽", supportsLineups = true),
+    TENNIS("tennis", "Tennis", "🎾", supportsLineups = false),
+    BASKETBALL("basketball", "Basketball", "🏀", supportsLineups = false),
+    HOCKEY("hockey", "Hockey", "🏑", supportsLineups = false),
+    CRICKET("cricket", "Cricket", "🏏", supportsLineups = false)
 }
 
 /**

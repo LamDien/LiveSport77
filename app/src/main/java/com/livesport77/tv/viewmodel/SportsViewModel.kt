@@ -209,7 +209,7 @@ class SportsViewModel(
             val hasStarted = match.status == MatchStatus.LIVE || match.status == MatchStatus.FINISHED
             val incidents = if (hasStarted) repository.fetchMatchIncidents(sport, match) else emptyList()
             val stats = if (hasStarted) repository.fetchMatchStatistics(sport, match.id) else null
-            val lineup = repository.fetchMatchLineup(sport, match.id)
+            val lineup = if (sport.supportsLineups) repository.fetchMatchLineup(sport, match.id) else null
 
             _uiState.update { current ->
                 if (current.activeMatch?.id == match.id) {
