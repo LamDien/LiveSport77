@@ -288,6 +288,10 @@ class SportsViewModelTest {
         advanceUntilIdle()
 
         assertFalse(SportType.TENNIS.supportsLineups)
+        assertTrue(SportType.FOOTBALL.supportsLineups)
+        assertTrue(SportType.BASKETBALL.supportsLineups)
+        assertTrue(SportType.HOCKEY.supportsLineups)
+        assertTrue(SportType.CRICKET.supportsLineups)
         assertTrue("Tennis must never fetch team lineups", fakeRepo.lineupCalls.isEmpty())
         assertEquals(null, vm.uiState.value.activeMatch?.lineup)
     }

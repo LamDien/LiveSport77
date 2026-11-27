@@ -9,13 +9,13 @@ enum class SportType(
     val id: String,
     val displayName: String,
     val icon: String,
-    val supportsLineups: Boolean = false
+    val supportsLineups: Boolean
 ) {
     FOOTBALL("football", "Football", "⚽", supportsLineups = true),
     TENNIS("tennis", "Tennis", "🎾", supportsLineups = false),
-    BASKETBALL("basketball", "Basketball", "🏀", supportsLineups = false),
-    HOCKEY("hockey", "Hockey", "🏑", supportsLineups = false),
-    CRICKET("cricket", "Cricket", "🏏", supportsLineups = false)
+    BASKETBALL("basketball", "Basketball", "🏀", supportsLineups = true),
+    HOCKEY("hockey", "Hockey", "🏑", supportsLineups = true),
+    CRICKET("cricket", "Cricket", "🏏", supportsLineups = true)
 }
 
 /**

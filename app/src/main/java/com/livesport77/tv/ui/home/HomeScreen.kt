@@ -548,7 +548,7 @@ fun FullscreenScoreboardModal(
                         if (!hasPlayers) {
                             Text(
                                 text = if (isPreMatch) {
-                                    "Chưa công bố đội hình dự kiến. Đội hình ra sân thường được cập nhật trước giờ bóng lăn 45–60 phút."
+                                    "Chưa công bố đội hình dự kiến. Đội hình ra sân thường được cập nhật trước giờ thi đấu 45–60 phút."
                                 } else {
                                     "Chưa có dữ liệu đội hình cho trận đấu này."
                                 },

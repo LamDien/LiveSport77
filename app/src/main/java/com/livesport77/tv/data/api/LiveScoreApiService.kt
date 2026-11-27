@@ -332,10 +332,17 @@ class LiveScoreApiService {
                     for (j in 0 until psArr.length()) {
                         val p = psArr.optJSONObject(j) ?: continue
                         val pos = p.optInt("Pos", 0)
-                        val name = extractPlayerName(p) ?: continue
-                        if (pos == 10 || p.optString("Pon", "").equals("COACH", ignoreCase = true)) {
+                        val pon = p.optString("Pon", "").trim()
+                        val name = extractPlayerName(p)
+                            ?: p.optString("Snm", "").trim().takeIf { it.isNotEmpty() && !it.equals("null", ignoreCase = true) }
+                            ?: continue
+
+                        val isCoach = pos == 10 || pon.equals("COACH", ignoreCase = true)
+                        val isSub = pos == 5 || pon.equals("SUBSTITUTE", ignoreCase = true) || pon.equals("BENCH", ignoreCase = true)
+
+                        if (isCoach) {
                             coach = name
-                        } else if (pos in 1..4) {
+                        } else if (!isSub && (pos in 1..4 || pos > 10 || pon.equals("STARTER", ignoreCase = true))) {
                             val num = p.optInt("Snu", 0)
                             val label = if (num > 0) "$num. $name" else name
                             players.add(label)

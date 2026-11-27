@@ -431,4 +431,34 @@ class LiveScoreApiServiceTest {
         assertEquals("Mikel Arteta", lineup.homeCoach)
         assertEquals("Enzo Maresca", lineup.awayCoach)
     }
+
+    @Test
+    fun parseLineup_supportsHockeyAndCricketTeamLineups() {
+        val hockeyJson = """
+            {
+              "Eid": "1857117",
+              "Lu": [
+                {
+                  "Tnb": 1,
+                  "Ps": [
+                    {"Fn": "Aleksandar", "Ln": "Magovac", "Pos": 14, "Pon": "STARTER", "Snu": 29},
+                    {"Fn": "Backup", "Ln": "Bench", "Pos": 5, "Pon": "SUBSTITUTE", "Snu": 1}
+                  ]
+                },
+                {
+                  "Tnb": 2,
+                  "Ps": [
+                    {"Fn": "Mitchell", "Ln": "Marsh", "Pos": 123},
+                    {"Fn": "Sam", "Ln": "Harper", "Pos": 124}
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val lineup = apiService.parseLineup(hockeyJson)
+        assertTrue(lineup != null)
+        assertEquals(listOf("29. Aleksandar Magovac"), lineup!!.homeStarting)
+        assertEquals(listOf("Mitchell Marsh", "Sam Harper"), lineup.awayStarting)
+    }
 }
