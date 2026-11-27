@@ -25,12 +25,13 @@ Native Android application built with **Kotlin** and **Jetpack Compose for TV** 
 # Build minified release APK
 ./gradlew assembleRelease
 
-# Deploy to connected Android TV / Tablet via ADB
-adb install -r app/build/outputs/apk/debug/app-debug.apk
+# Deploy versioned release APK to connected Android TV / Tablet via ADB
+adb install -r app/build/outputs/apk/release/LiveSport77-v1.1.0-release.apk
 adb shell am start -n com.livesport77.tv/.MainActivity
 ```
 
 ## Documentation
+- [Changelog](CHANGELOG.md)
 - [Technical Spec](docs/specs/livesport77_tv_spec.md)
 - [Quality Constraints](CONSTRAINTS.md)
 - [ADR 0001: Hanoi Timezone & Incident Parsing](docs/adr/0001-hanoi-timezone-and-livescore-parsing.md)
