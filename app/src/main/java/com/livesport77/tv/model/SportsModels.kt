@@ -92,6 +92,8 @@ data class Match(
     val leagueName: String,
     val leagueCountry: String = "",
     val leagueFlag: String,
+    val leagueCategoryCode: String = "",
+    val leagueStageCode: String = "",
     val startTime: String,
     val status: MatchStatus,
     val statusDisplay: String,
@@ -110,5 +112,23 @@ data class LeagueGroup(
     val name: String,
     val country: String,
     val flag: String,
+    val categoryCode: String = "",
+    val stageCode: String = "",
     val matches: List<Match>
+)
+
+@Immutable
+data class LeagueStandingRow(
+    val rank: Int,
+    val teamId: String,
+    val teamName: String,
+    val teamLogoUrl: String? = null,
+    val played: Int,
+    val wins: Int,
+    val draws: Int,
+    val losses: Int,
+    val goalsFor: Int,
+    val goalsAgainst: Int,
+    val goalDiff: Int,
+    val points: Int
 )

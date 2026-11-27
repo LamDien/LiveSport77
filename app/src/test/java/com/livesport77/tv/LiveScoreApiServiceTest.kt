@@ -225,4 +225,75 @@ class LiveScoreApiServiceTest {
         val result = apiService.readStreamBounded(ByteArrayInputStream(payload.toByteArray()), maxBytes = 64)
         assertEquals(payload, result)
     }
+
+    @Test
+    fun parseLiveScoreJson_keepsDistinctLeaguesWithSharedScdOrSameCountrySeparate() {
+        val payload = """
+            {
+              "Stages": [
+                {
+                  "Sid": "26268",
+                  "Cnm": "Europa League",
+                  "Ccd": "europa-league",
+                  "Snm": "League Stage",
+                  "Scd": "league-stage",
+                  "Events": [
+                    {
+                      "Eid": "e1",
+                      "Esd": 20261127200000,
+                      "Eps": "NS",
+                      "Esid": 1,
+                      "T1": [{"ID": "h1", "Nm": "Roma", "Abr": "ROM"}],
+                      "T2": [{"ID": "a1", "Nm": "Porto", "Abr": "POR"}]
+                    }
+                  ]
+                },
+                {
+                  "Sid": "26269",
+                  "Cnm": "Conference League",
+                  "Ccd": "conference-league",
+                  "Snm": "League Stage",
+                  "Scd": "league-stage",
+                  "Events": [
+                    {
+                      "Eid": "e2",
+                      "Esd": 20261127200000,
+                      "Eps": "NS",
+                      "Esid": 1,
+                      "T1": [{"ID": "h2", "Nm": "Chelsea", "Abr": "CHE"}],
+                      "T2": [{"ID": "a2", "Nm": "Betis", "Abr": "BET"}]
+                    }
+                  ]
+                },
+                {
+                  "Sid": "25616",
+                  "Cnm": "England",
+                  "Ccd": "england",
+                  "Snm": "League 1",
+                  "Scd": "league-1",
+                  "Events": [
+                    {
+                      "Eid": "e3",
+                      "Esd": 20261127200000,
+                      "Eps": "NS",
+                      "Esid": 1,
+                      "T1": [{"ID": "h3", "Nm": "Bolton", "Abr": "BOL"}],
+                      "T2": [{"ID": "a3", "Nm": "Wigan", "Abr": "WIG"}]
+                    }
+                  ]
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val matches = apiService.parseLiveScoreJson(payload, SportType.FOOTBALL)
+        assertEquals(3, matches.size)
+        assertEquals("26268", matches[0].leagueId)
+        assertEquals("europa-league", matches[0].leagueCategoryCode)
+        assertEquals("league-stage", matches[0].leagueStageCode)
+        assertEquals("26269", matches[1].leagueId)
+        assertEquals("conference-league", matches[1].leagueCategoryCode)
+        assertEquals("25616", matches[2].leagueId)
+        assertEquals(3, matches.map { it.leagueId }.toSet().size)
+    }
 }

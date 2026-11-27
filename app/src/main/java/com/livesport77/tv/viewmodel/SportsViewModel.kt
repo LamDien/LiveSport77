@@ -215,7 +215,7 @@ class SportsViewModel(
     private fun groupMatchesByLeague(matchesList: List<Match>): List<LeagueGroup> {
         val groupedMap = LinkedHashMap<String, MutableList<Match>>()
         for (m in matchesList) {
-            val key = m.leagueId.ifEmpty { m.leagueName }
+            val key = m.leagueId.ifEmpty { "${m.leagueCountry}_${m.leagueName}" }
             groupedMap.getOrPut(key) { mutableListOf() }.add(m)
         }
         return groupedMap.map { (id, list) ->
@@ -225,6 +225,8 @@ class SportsViewModel(
                 name = sample.leagueName,
                 country = sample.leagueCountry,
                 flag = sample.leagueFlag,
+                categoryCode = sample.leagueCategoryCode,
+                stageCode = sample.leagueStageCode,
                 matches = list
             )
         }

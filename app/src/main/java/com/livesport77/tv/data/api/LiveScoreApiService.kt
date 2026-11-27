@@ -194,7 +194,15 @@ class LiveScoreApiService {
                 val stage = stages.getJSONObject(i)
                 val country = stage.optString("Cnm", "")
                 val stageName = stage.optString("Snm", "Giải đấu")
-                val leagueId = stage.optString("Scd", "league_$i")
+                val sid = stage.optString("Sid", "").trim()
+                val ccd = stage.optString("Ccd", "").trim()
+                val scd = stage.optString("Scd", "").trim()
+                val leagueId = when {
+                    sid.isNotEmpty() -> sid
+                    ccd.isNotEmpty() && scd.isNotEmpty() -> "$ccd/$scd"
+                    scd.isNotEmpty() -> "${country.lowercase()}_$scd"
+                    else -> "league_$i"
+                }
                 val flag = getCountryFlag(country, sport)
 
                 val events = stage.optJSONArray("Events") ?: continue
@@ -269,6 +277,8 @@ class LiveScoreApiService {
                             leagueName = stageName,
                             leagueCountry = country,
                             leagueFlag = flag,
+                            leagueCategoryCode = ccd,
+                            leagueStageCode = scd,
                             startTime = startTimeFormatted,
                             status = matchStatus,
                             statusDisplay = statusDisplay,
