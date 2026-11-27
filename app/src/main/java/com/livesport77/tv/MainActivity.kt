@@ -32,9 +32,12 @@ class MainActivity : ComponentActivity() {
     }
 
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (event != null) {
-            // Check if user pressed Back key while in fullscreen
-            if (keyCode == KeyEvent.KEYCODE_BACK && viewModel.uiState.value.isFullscreen) {
+        if (event != null && keyCode == KeyEvent.KEYCODE_BACK) {
+            if (viewModel.uiState.value.selectedStandingsLeague != null) {
+                viewModel.closeLeagueStandings()
+                return true
+            }
+            if (viewModel.uiState.value.isFullscreen) {
                 viewModel.setFullscreen(false)
                 return true
             }

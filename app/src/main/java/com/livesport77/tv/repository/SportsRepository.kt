@@ -2,6 +2,7 @@ package com.livesport77.tv.repository
 
 import android.util.Log
 import com.livesport77.tv.data.api.LiveScoreApiService
+import com.livesport77.tv.model.LeagueStandingRow
 import com.livesport77.tv.model.Match
 import com.livesport77.tv.model.MatchEvent
 import com.livesport77.tv.model.SportType
@@ -14,6 +15,7 @@ interface SportsRepository {
     fun getMatches(sport: SportType): Flow<List<Match>>
     suspend fun refreshSport(sport: SportType, dateStr: String = ""): List<Match>
     suspend fun fetchMatchIncidents(sport: SportType, match: Match): List<MatchEvent>
+    suspend fun fetchLeagueStandings(sport: SportType, categoryCode: String, stageCode: String): List<LeagueStandingRow>
     fun getMatchDetail(matchId: String): Flow<Match?>
 }
 
@@ -61,6 +63,19 @@ class SportsRepositoryImpl(
             incidents
         } catch (e: Exception) {
             Log.w("SportsRepository", "Failed to fetch incidents for match ${match.id}: ${e.message}")
+            emptyList()
+        }
+    }
+
+    override suspend fun fetchLeagueStandings(
+        sport: SportType,
+        categoryCode: String,
+        stageCode: String
+    ): List<LeagueStandingRow> {
+        return try {
+            apiService.fetchLeagueStandings(sport, categoryCode, stageCode)
+        } catch (e: Exception) {
+            Log.w("SportsRepository", "Failed to fetch standings: ${e.javaClass.simpleName}")
             emptyList()
         }
     }

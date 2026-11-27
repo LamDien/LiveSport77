@@ -35,7 +35,8 @@ class SportsViewModelTest {
 
     private class FakeSportsRepository(
         private val matchesBySport: Map<SportType, List<Match>>,
-        private val incidentsByMatchId: Map<String, List<MatchEvent>> = emptyMap()
+        private val incidentsByMatchId: Map<String, List<MatchEvent>> = emptyMap(),
+        private val standingsByKey: Map<String, List<LeagueStandingRow>> = emptyMap()
     ) : SportsRepository {
         val refreshedCalls = mutableListOf<Pair<SportType, String>>()
         val incidentCalls = mutableListOf<String>()
@@ -52,6 +53,12 @@ class SportsViewModelTest {
             incidentCalls.add(match.id)
             return incidentsByMatchId[match.id].orEmpty()
         }
+
+        override suspend fun fetchLeagueStandings(
+            sport: SportType,
+            categoryCode: String,
+            stageCode: String
+        ): List<LeagueStandingRow> = standingsByKey["$categoryCode/$stageCode"].orEmpty()
 
         override fun getMatchDetail(matchId: String): Flow<Match?> = flowOf(null)
     }
@@ -198,5 +205,36 @@ class SportsViewModelTest {
         assertTrue(vm.uiState.value.isFullscreen)
         vm.setFullscreen(false)
         assertFalse(vm.uiState.value.isFullscreen)
+    }
+
+    @Test
+    fun openAndCloseLeagueStandings_loadsStandingsTableAndResetsOnClose() = runTest(testDispatcher) {
+        val row = LeagueStandingRow(1, "t1", "Arsenal", null, 10, 8, 1, 1, 22, 7, 15, 25)
+        val fakeRepo = FakeSportsRepository(
+            matchesBySport = emptyMap(),
+            standingsByKey = mapOf("england/premier-league" to listOf(row))
+        )
+        val vm = SportsViewModel(repository = fakeRepo, enableAutoRefresh = false)
+        advanceUntilIdle()
+
+        val league = LeagueGroup(
+            id = "25600",
+            name = "Premier League",
+            country = "England",
+            flag = "🏴󠁧󠁢󠁥󠁮󠁧󠁿",
+            categoryCode = "england",
+            stageCode = "premier-league",
+            matches = emptyList()
+        )
+        vm.openLeagueStandings(league)
+        advanceUntilIdle()
+
+        assertEquals("25600", vm.uiState.value.selectedStandingsLeague?.id)
+        assertFalse(vm.uiState.value.isLoadingStandings)
+        assertEquals(listOf(row), vm.uiState.value.leagueStandings)
+
+        vm.closeLeagueStandings()
+        assertEquals(null, vm.uiState.value.selectedStandingsLeague)
+        assertTrue(vm.uiState.value.leagueStandings.isEmpty())
     }
 }

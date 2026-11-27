@@ -28,6 +28,7 @@ class LiveScoreApiService {
         private const val MAX_SCOREBOARD_RESPONSE_BYTES = 1 * 1024 * 1024 // 1 MB cap
         private val DATE_PARAM_REGEX = Regex("^\\d{8}$")
         private val MATCH_ID_REGEX = Regex("^[A-Za-z0-9_-]{1,64}$")
+        private val SAFE_SLUG_REGEX = Regex("^[A-Za-z0-9._-]{1,128}$")
         private val SAFE_IMAGE_PATH_REGEX = Regex("^[A-Za-z0-9._/-]{1,256}$")
     }
 
@@ -38,6 +39,9 @@ class LiveScoreApiService {
     internal fun isValidDateParam(dateStr: String): Boolean = DATE_PARAM_REGEX.matches(dateStr)
 
     internal fun isValidMatchId(matchId: String): Boolean = MATCH_ID_REGEX.matches(matchId)
+
+    internal fun isValidStageSlug(slug: String): Boolean =
+        slug.isNotEmpty() && !slug.contains("..") && SAFE_SLUG_REGEX.matches(slug)
 
     internal fun buildSafeLogoUrl(rawImg: String): String? {
         val trimmed = rawImg.trim().trimStart('/')
@@ -182,6 +186,108 @@ class LiveScoreApiService {
             connection?.disconnect()
         }
         emptyList()
+    }
+
+    /**
+     * Fetch league standings table directly from LiveScore CDN stage endpoint.
+     */
+    suspend fun fetchLeagueStandings(
+        sport: SportType,
+        categoryCode: String,
+        stageCode: String
+    ): List<LeagueStandingRow> = withContext(Dispatchers.IO) {
+        if (!isValidStageSlug(categoryCode) || !isValidStageSlug(stageCode)) {
+            Log.w("LiveScoreApi", "Rejected invalid stage slug parameters")
+            return@withContext emptyList()
+        }
+
+        val sportPath = when (sport) {
+            SportType.FOOTBALL -> "soccer"
+            SportType.HOCKEY -> "hockey"
+            SportType.BASKETBALL -> "basketball"
+            SportType.TENNIS -> "tennis"
+            SportType.CRICKET -> "cricket"
+        }
+        val tzOffset = getTimezoneOffsetParam()
+        val endpointUrl = "$baseUrl/stage/$sportPath/$categoryCode/$stageCode/$tzOffset"
+
+        var connection: HttpsURLConnection? = null
+        try {
+            val url = URL(endpointUrl)
+            if (url.protocol != "https") {
+                return@withContext emptyList()
+            }
+            connection = (url.openConnection() as HttpsURLConnection).apply {
+                requestMethod = "GET"
+                connectTimeout = 8000
+                readTimeout = 8000
+                instanceFollowRedirects = false
+                setRequestProperty("User-Agent", userAgent)
+                setRequestProperty("Accept", "application/json, text/plain, */*")
+            }
+
+            if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                val jsonString = readStreamBounded(connection.inputStream, MAX_SCOREBOARD_RESPONSE_BYTES)
+                return@withContext parseStandings(jsonString)
+            }
+        } catch (e: Exception) {
+            Log.w("LiveScoreApi", "Standings fetch error: ${e.javaClass.simpleName}")
+        } finally {
+            connection?.disconnect()
+        }
+        emptyList()
+    }
+
+    internal fun parseStandings(jsonString: String): List<LeagueStandingRow> {
+        val rows = mutableListOf<LeagueStandingRow>()
+        try {
+            val root = JSONObject(jsonString)
+            val stages = root.optJSONArray("Stages") ?: return emptyList()
+            if (stages.length() == 0) return emptyList()
+            val stage = stages.optJSONObject(0) ?: return emptyList()
+            val leagueTable = stage.optJSONObject("LeagueTable") ?: return emptyList()
+            val lArr = leagueTable.optJSONArray("L") ?: return emptyList()
+            if (lArr.length() == 0) return emptyList()
+            val tables = lArr.optJSONObject(0)?.optJSONArray("Tables") ?: return emptyList()
+            if (tables.length() == 0) return emptyList()
+            val teams = tables.optJSONObject(0)?.optJSONArray("team") ?: return emptyList()
+
+            for (i in 0 until teams.length()) {
+                val t = teams.optJSONObject(i) ?: continue
+                val rank = t.optInt("rnk", i + 1)
+                val teamId = t.optString("Tid", "team_$i")
+                val teamName = t.optString("Tnm", "Team")
+                val logoUrl = buildSafeLogoUrl(t.optString("Img", ""))
+                val played = t.optInt("pld", 0)
+                val wins = t.optInt("win", 0)
+                val draws = t.optInt("drw", 0)
+                val losses = t.optInt("lst", 0)
+                val gf = t.optInt("gf", 0)
+                val ga = t.optInt("ga", 0)
+                val gd = t.optInt("gd", gf - ga)
+                val pts = t.optInt("pts", 0)
+
+                rows.add(
+                    LeagueStandingRow(
+                        rank = rank,
+                        teamId = teamId,
+                        teamName = teamName,
+                        teamLogoUrl = logoUrl,
+                        played = played,
+                        wins = wins,
+                        draws = draws,
+                        losses = losses,
+                        goalsFor = gf,
+                        goalsAgainst = ga,
+                        goalDiff = gd,
+                        points = pts
+                    )
+                )
+            }
+        } catch (e: Exception) {
+            Log.w("LiveScoreApi", "Error parsing standings: ${e.javaClass.simpleName}")
+        }
+        return rows.sortedBy { it.rank }
     }
 
     internal fun parseLiveScoreJson(jsonString: String, sport: SportType): List<Match> {

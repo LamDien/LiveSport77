@@ -38,6 +38,8 @@ import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import com.livesport77.tv.data.api.LiveScoreApiService
 import com.livesport77.tv.model.EventType
+import com.livesport77.tv.model.LeagueGroup
+import com.livesport77.tv.model.LeagueStandingRow
 import com.livesport77.tv.model.Match
 import com.livesport77.tv.model.MatchStatus
 import com.livesport77.tv.ui.components.LeagueHeaderCard
@@ -77,9 +79,13 @@ fun HomeScreen(
         }
     }
 
-    // Handle Android TV Back Button
-    BackHandler(enabled = uiState.isFullscreen) {
-        viewModel.setFullscreen(false)
+    // Handle Back Button for modals
+    BackHandler(enabled = uiState.isFullscreen || uiState.selectedStandingsLeague != null) {
+        if (uiState.selectedStandingsLeague != null) {
+            viewModel.closeLeagueStandings()
+        } else {
+            viewModel.setFullscreen(false)
+        }
     }
 
     Box(
@@ -204,9 +210,12 @@ fun HomeScreen(
                             modifier = Modifier.fillMaxSize()
                         ) {
                             uiState.groupedLeagues.forEach { league ->
-                                // League Section Header
+                                // League Section Header (tap / OK to open standings)
                                 item(key = "league_${league.id}") {
-                                    LeagueHeaderCard(league = league)
+                                    LeagueHeaderCard(
+                                        league = league,
+                                        onClick = { viewModel.openLeagueStandings(league) }
+                                    )
                                 }
 
                                 // Matches belonging to this League
@@ -245,6 +254,16 @@ fun HomeScreen(
             FullscreenScoreboardModal(
                 match = uiState.activeMatch!!,
                 onClose = { viewModel.setFullscreen(false) }
+            )
+        }
+
+        // LEAGUE STANDINGS MODAL (Bảng xếp hạng)
+        uiState.selectedStandingsLeague?.let { standingsLeague ->
+            LeagueStandingsModal(
+                league = standingsLeague,
+                standings = uiState.leagueStandings,
+                isLoading = uiState.isLoadingStandings,
+                onClose = { viewModel.closeLeagueStandings() }
             )
         }
     }
@@ -562,6 +581,231 @@ private fun FullscreenTeamCrest(
             )
         } else {
             Text(text = emoji, fontSize = 36.sp)
+        }
+    }
+}
+
+/**
+ * League Standings Modal (Bảng xếp hạng) matching LiveScore.com layout.
+ * Works seamlessly with both Tablet touch and Android TV D-Pad.
+ */
+@Composable
+fun LeagueStandingsModal(
+    league: LeagueGroup,
+    standings: List<LeagueStandingRow>,
+    isLoading: Boolean,
+    onClose: () -> Unit
+) {
+    Dialog(
+        onDismissRequest = onClose,
+        properties = DialogProperties(usePlatformDefaultWidth = false)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xEB070A0F))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClose
+                )
+                .padding(horizontal = 24.dp, vertical = 20.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth(0.90f)
+                    .widthIn(max = 920.dp)
+                    .fillMaxHeight(0.88f)
+                    .clip(RoundedCornerShape(22.dp))
+                    .background(TvSurface)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {}
+                    )
+                    .padding(horizontal = 24.dp, vertical = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = buildString {
+                            append(league.flag)
+                            append(" ")
+                            if (league.country.isNotBlank() && !league.name.equals(league.country, ignoreCase = true)) {
+                                append(league.country)
+                                append(" · ")
+                            }
+                            append(league.name)
+                        },
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            color = TvFocusGold,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 18.sp
+                        ),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "BẢNG XẾP HẠNG",
+                        style = MaterialTheme.typography.labelMedium.copy(
+                            color = TvNeonGreen,
+                            fontWeight = FontWeight.Bold
+                        )
+                    )
+                }
+
+                // Table Column Headers
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(8.dp))
+                        .background(TvSurfaceVariant)
+                        .padding(horizontal = 12.dp, vertical = 8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text("#", modifier = Modifier.width(30.dp), style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontWeight = FontWeight.Bold))
+                    Text("Đội bóng", modifier = Modifier.weight(1f), style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontWeight = FontWeight.Bold))
+                    Text("Tr", modifier = Modifier.width(34.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontWeight = FontWeight.Bold))
+                    Text("T", modifier = Modifier.width(34.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontWeight = FontWeight.Bold))
+                    Text("H", modifier = Modifier.width(34.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontWeight = FontWeight.Bold))
+                    Text("B", modifier = Modifier.width(34.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontWeight = FontWeight.Bold))
+                    Text("HS", modifier = Modifier.width(42.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall.copy(color = TvTextMuted, fontWeight = FontWeight.Bold))
+                    Text("Đ", modifier = Modifier.width(42.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.labelSmall.copy(color = TvFocusGold, fontWeight = FontWeight.Black))
+                }
+
+                // Content
+                Box(modifier = Modifier.weight(1f).fillMaxWidth()) {
+                    when {
+                        isLoading -> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "⚡ Đang tải bảng xếp hạng...",
+                                    style = MaterialTheme.typography.titleMedium.copy(color = TvFocusGold, fontWeight = FontWeight.Bold)
+                                )
+                            }
+                        }
+                        standings.isEmpty() -> {
+                            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                                Text(
+                                    text = "Giải đấu này chưa có bảng xếp hạng (ví dụ: cúp loại trực tiếp / giao hữu).",
+                                    style = MaterialTheme.typography.bodyMedium.copy(color = TvTextMuted, textAlign = TextAlign.Center)
+                                )
+                            }
+                        }
+                        else -> {
+                            LazyColumn(
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.fillMaxSize()
+                            ) {
+                                items(items = standings, key = { "${it.rank}_${it.teamId}" }) { row ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .clip(RoundedCornerShape(8.dp))
+                                            .background(if (row.rank <= 4) Color(0xFF172230) else TvSurfaceVariant.copy(alpha = 0.65f))
+                                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = "${row.rank}",
+                                            modifier = Modifier.width(30.dp),
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                color = if (row.rank <= 4) TvNeonGreen else TvTextPrimary,
+                                                fontWeight = FontWeight.Bold
+                                            )
+                                        )
+                                        Row(
+                                            modifier = Modifier.weight(1f),
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            if (!row.teamLogoUrl.isNullOrEmpty()) {
+                                                AsyncImage(
+                                                    model = ImageRequest.Builder(LocalContext.current)
+                                                        .data(row.teamLogoUrl)
+                                                        .crossfade(true)
+                                                        .build(),
+                                                    contentDescription = row.teamName,
+                                                    contentScale = ContentScale.Fit,
+                                                    modifier = Modifier.size(20.dp).clip(CircleShape)
+                                                )
+                                            }
+                                            Text(
+                                                text = row.teamName,
+                                                style = MaterialTheme.typography.bodyMedium.copy(
+                                                    color = TvTextPrimary,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    fontSize = 13.sp
+                                                ),
+                                                maxLines = 1,
+                                                overflow = TextOverflow.Ellipsis
+                                            )
+                                        }
+                                        Text("${row.played}", modifier = Modifier.width(34.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall.copy(color = TvTextPrimary))
+                                        Text("${row.wins}", modifier = Modifier.width(34.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall.copy(color = TvTextMuted))
+                                        Text("${row.draws}", modifier = Modifier.width(34.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall.copy(color = TvTextMuted))
+                                        Text("${row.losses}", modifier = Modifier.width(34.dp), textAlign = TextAlign.Center, style = MaterialTheme.typography.bodySmall.copy(color = TvTextMuted))
+                                        Text(
+                                            text = if (row.goalDiff > 0) "+${row.goalDiff}" else "${row.goalDiff}",
+                                            modifier = Modifier.width(42.dp),
+                                            textAlign = TextAlign.Center,
+                                            style = MaterialTheme.typography.bodySmall.copy(color = TvTextMuted)
+                                        )
+                                        Text(
+                                            text = "${row.points}",
+                                            modifier = Modifier.width(42.dp),
+                                            textAlign = TextAlign.Center,
+                                            style = MaterialTheme.typography.titleSmall.copy(
+                                                color = TvFocusGold,
+                                                fontWeight = FontWeight.Black
+                                            )
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Bottom Touch + D-Pad OK Button
+                Box(modifier = Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+                    val okInteraction = remember { MutableInteractionSource() }
+                    val okFocused by okInteraction.collectIsFocusedAsState()
+                    val okPressed by okInteraction.collectIsPressedAsState()
+                    Box(
+                        modifier = Modifier
+                            .defaultMinSize(minWidth = 140.dp, minHeight = 44.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(if (okPressed) TvFocusGold.copy(alpha = 0.8f) else TvFocusGold)
+                            .border(
+                                width = if (okFocused) 2.dp else 0.dp,
+                                color = if (okFocused) Color.White else Color.Transparent,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .focusable(interactionSource = okInteraction)
+                            .clickable(interactionSource = okInteraction, indication = null) { onClose() }
+                            .padding(horizontal = 32.dp, vertical = 10.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "OK",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                color = Color.Black,
+                                fontWeight = FontWeight.Black,
+                                fontSize = 15.sp
+                            )
+                        )
+                    }
+                }
+            }
         }
     }
 }

@@ -296,4 +296,45 @@ class LiveScoreApiServiceTest {
         assertEquals("25616", matches[2].leagueId)
         assertEquals(3, matches.map { it.leagueId }.toSet().size)
     }
+
+    @Test
+    fun parseStandings_parsesLeagueTableRowsAndValidatesStageSlugs() {
+        assertTrue(apiService.isValidStageSlug("europa-league"))
+        assertTrue(apiService.isValidStageSlug("league-1"))
+        assertFalse(apiService.isValidStageSlug(""))
+        assertFalse(apiService.isValidStageSlug("../admin"))
+        assertFalse(apiService.isValidStageSlug("england/premier"))
+
+        val stageJson = """
+            {
+              "Stages": [
+                {
+                  "LeagueTable": {
+                    "L": [
+                      {
+                        "Tables": [
+                          {
+                            "team": [
+                              {"rnk": 2, "Tid": "2", "Tnm": "Arsenal", "Img": "enet/2.png", "pld": 8, "win": 5, "drw": 2, "lst": 1, "gf": 14, "ga": 7, "gd": 7, "pts": 17},
+                              {"rnk": 1, "Tid": "1", "Tnm": "Liverpool", "Img": "enet/1.png", "pld": 8, "win": 6, "drw": 1, "lst": 1, "gf": 18, "ga": 5, "gd": 13, "pts": 19}
+                            ]
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val rows = apiService.parseStandings(stageJson)
+        assertEquals(2, rows.size)
+        assertEquals(1, rows[0].rank)
+        assertEquals("Liverpool", rows[0].teamName)
+        assertEquals(19, rows[0].points)
+        assertEquals("https://lsm-static-prod.livescore.com/medium/enet/1.png", rows[0].teamLogoUrl)
+        assertEquals(2, rows[1].rank)
+        assertEquals("Arsenal", rows[1].teamName)
+    }
 }

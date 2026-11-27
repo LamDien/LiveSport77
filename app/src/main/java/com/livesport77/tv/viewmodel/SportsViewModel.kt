@@ -27,7 +27,10 @@ data class SportsUiState(
     val activeMatch: Match? = null,
     val isFullscreen: Boolean = false,
     val isLoading: Boolean = true,
-    val favorites: Set<String> = emptySet()
+    val favorites: Set<String> = emptySet(),
+    val selectedStandingsLeague: LeagueGroup? = null,
+    val leagueStandings: List<LeagueStandingRow> = emptyList(),
+    val isLoadingStandings: Boolean = false
 )
 
 class SportsViewModel(
@@ -164,6 +167,41 @@ class SportsViewModel(
 
     fun setFullscreen(fullscreen: Boolean) {
         _uiState.update { it.copy(isFullscreen = fullscreen) }
+    }
+
+    fun openLeagueStandings(league: LeagueGroup) {
+        val sport = _uiState.value.selectedSport
+        _uiState.update {
+            it.copy(
+                selectedStandingsLeague = league,
+                leagueStandings = emptyList(),
+                isLoadingStandings = true
+            )
+        }
+        viewModelScope.launch {
+            val standings = if (league.categoryCode.isNotBlank() && league.stageCode.isNotBlank()) {
+                repository.fetchLeagueStandings(sport, league.categoryCode, league.stageCode)
+            } else {
+                emptyList()
+            }
+            _uiState.update { current ->
+                if (current.selectedStandingsLeague?.id == league.id) {
+                    current.copy(leagueStandings = standings, isLoadingStandings = false)
+                } else {
+                    current
+                }
+            }
+        }
+    }
+
+    fun closeLeagueStandings() {
+        _uiState.update {
+            it.copy(
+                selectedStandingsLeague = null,
+                leagueStandings = emptyList(),
+                isLoadingStandings = false
+            )
+        }
     }
 
     private fun fetchIncidentsForMatch(sport: SportType, match: Match) {
