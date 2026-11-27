@@ -2,6 +2,8 @@ package com.livesport77.tv.ui.home
 
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -268,6 +270,11 @@ fun FullscreenScoreboardModal(
             modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xEB070A0F))
+                .clickable(
+                    interactionSource = remember { MutableInteractionSource() },
+                    indication = null,
+                    onClick = onClose
+                )
                 .padding(horizontal = 24.dp, vertical = 20.dp),
             contentAlignment = Alignment.Center
         ) {
@@ -277,12 +284,17 @@ fun FullscreenScoreboardModal(
                     .widthIn(max = 960.dp)
                     .clip(RoundedCornerShape(24.dp))
                     .background(TvSurface)
+                    .clickable(
+                        interactionSource = remember { MutableInteractionSource() },
+                        indication = null,
+                        onClick = {}
+                    )
                     .verticalScroll(rememberScrollState())
                     .padding(horizontal = 28.dp, vertical = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.spacedBy(18.dp)
             ) {
-                // Header: League + Status Badge
+                // Header: League + Status Badge + Touch Close Button
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -309,21 +321,44 @@ fun FullscreenScoreboardModal(
 
                     Spacer(modifier = Modifier.width(12.dp))
 
-                    Box(
-                        modifier = Modifier
-                            .clip(RoundedCornerShape(8.dp))
-                            .background(if (match.status == MatchStatus.LIVE) TvLiveRed else TvSurfaceVariant)
-                            .padding(horizontal = 12.dp, vertical = 5.dp)
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Text(
-                            text = if (match.status == MatchStatus.SCHEDULED) "${match.startTime} (Giờ HN)" else match.statusDisplay,
-                            style = MaterialTheme.typography.labelMedium.copy(
-                                color = Color.White,
-                                fontWeight = FontWeight.Bold
-                            ),
-                            maxLines = 1,
-                            softWrap = false
-                        )
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(8.dp))
+                                .background(if (match.status == MatchStatus.LIVE) TvLiveRed else TvSurfaceVariant)
+                                .padding(horizontal = 12.dp, vertical = 5.dp)
+                        ) {
+                            Text(
+                                text = if (match.status == MatchStatus.SCHEDULED) "${match.startTime} (Giờ HN)" else match.statusDisplay,
+                                style = MaterialTheme.typography.labelMedium.copy(
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                maxLines = 1,
+                                softWrap = false
+                            )
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .size(36.dp)
+                                .clip(CircleShape)
+                                .background(TvSurfaceVariant)
+                                .clickable { onClose() },
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = "✕",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    color = TvTextPrimary,
+                                    fontWeight = FontWeight.Bold,
+                                    fontSize = 15.sp
+                                )
+                            )
+                        }
                     }
                 }
 
@@ -493,9 +528,10 @@ fun FullscreenScoreboardModal(
                         containerColor = TvFocusGold,
                         contentColor = Color.Black
                     ),
-                    shape = ButtonDefaults.shape(RoundedCornerShape(12.dp))
+                    shape = ButtonDefaults.shape(RoundedCornerShape(12.dp)),
+                    contentPadding = PaddingValues(horizontal = 24.dp, vertical = 10.dp)
                 ) {
-                    Text(text = "Đóng [ESC / Back]", fontWeight = FontWeight.Bold)
+                    Text(text = "Đóng", fontWeight = FontWeight.Bold)
                 }
             }
         }

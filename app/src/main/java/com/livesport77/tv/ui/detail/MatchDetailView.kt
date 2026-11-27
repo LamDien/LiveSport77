@@ -1,6 +1,7 @@
 package com.livesport77.tv.ui.detail
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -62,12 +63,13 @@ fun MatchDetailView(
             .padding(20.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // TOP SCOREBOARD HEADER
+        // TOP SCOREBOARD HEADER (tap to open fullscreen on tablets)
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(14.dp))
                 .background(TvSurfaceVariant)
+                .clickable { onFullscreenClick() }
                 .padding(16.dp)
         ) {
             // League and Status
@@ -357,14 +359,14 @@ fun MatchDetailView(
                             containerColor = TvFocusGold,
                             contentColor = Color.Black
                         ),
-                        shape = ButtonDefaults.shape(RoundedCornerShape(8.dp)),
-                        contentPadding = PaddingValues(horizontal = 8.dp, vertical = 2.dp)
+                        shape = ButtonDefaults.shape(RoundedCornerShape(10.dp)),
+                        contentPadding = PaddingValues(horizontal = 14.dp, vertical = 8.dp)
                     ) {
                         Text(
-                            text = "Bấm [OK] Phóng To",
+                            text = "Phóng to",
                             style = MaterialTheme.typography.labelSmall.copy(
                                 fontWeight = FontWeight.Bold,
-                                fontSize = 10.sp
+                                fontSize = 12.sp
                             )
                         )
                     }

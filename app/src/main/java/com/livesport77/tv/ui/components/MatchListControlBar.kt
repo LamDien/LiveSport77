@@ -6,6 +6,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -69,7 +70,11 @@ fun MatchListControlBar(
                     color = TvTextPrimary,
                     fontWeight = FontWeight.Bold,
                     fontSize = 14.sp
-                )
+                ),
+                modifier = Modifier
+                    .clip(RoundedCornerShape(8.dp))
+                    .clickable { onTodayClick() }
+                    .padding(horizontal = 8.dp, vertical = 6.dp)
             )
 
             TvArrowButton(text = "›", onClick = onNextDate)
@@ -89,31 +94,34 @@ private fun TvFilterPill(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isHighlighted = isFocused || isPressed
 
     val bg = when {
-        isFocused -> TvFocusGold
+        isHighlighted -> TvFocusGold
         isActive -> Color(0xFFE11D48)
         else -> Color(0xFF1E2330)
     }
 
     val textColor = when {
-        isFocused -> Color.Black
+        isHighlighted -> Color.Black
         isActive -> Color.White
         else -> Color(0xFFE2E8F0)
     }
 
     Row(
         modifier = Modifier
+            .defaultMinSize(minHeight = 36.dp)
             .clip(CircleShape)
             .background(bg)
             .border(
-                width = if (isFocused) 2.dp else 1.dp,
-                color = if (isFocused) TvFocusGold else if (isActive) Color(0xFFE11D48) else Color(0xFF2E384D),
+                width = if (isHighlighted) 2.dp else 1.dp,
+                color = if (isHighlighted) TvFocusGold else if (isActive) Color(0xFFE11D48) else Color(0xFF2E384D),
                 shape = CircleShape
             )
             .focusable(interactionSource = interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() }
-            .padding(horizontal = 12.dp, vertical = 5.dp),
+            .padding(horizontal = 14.dp, vertical = 7.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
@@ -122,7 +130,7 @@ private fun TvFilterPill(
                 modifier = Modifier
                     .size(6.dp)
                     .clip(CircleShape)
-                    .background(if (isFocused) Color.Black else if (isActive) Color.White else Color(0xFFE11D48))
+                    .background(if (isHighlighted) Color.Black else if (isActive) Color.White else Color(0xFFE11D48))
             )
         }
         Text(
@@ -143,15 +151,17 @@ private fun TvArrowButton(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isHighlighted = isFocused || isPressed
 
     Box(
         modifier = Modifier
-            .size(28.dp)
+            .size(36.dp)
             .clip(CircleShape)
-            .background(if (isFocused) TvFocusGold else Color(0xFF1E2330))
+            .background(if (isHighlighted) TvFocusGold else Color(0xFF1E2330))
             .border(
-                width = if (isFocused) 2.dp else 1.dp,
-                color = if (isFocused) TvFocusGold else Color(0xFF2A3345),
+                width = if (isHighlighted) 2.dp else 1.dp,
+                color = if (isHighlighted) TvFocusGold else Color(0xFF2A3345),
                 shape = CircleShape
             )
             .focusable(interactionSource = interactionSource)
@@ -161,9 +171,9 @@ private fun TvArrowButton(
         Text(
             text = text,
             style = MaterialTheme.typography.titleMedium.copy(
-                color = if (isFocused) Color.Black else TvTextPrimary,
+                color = if (isHighlighted) Color.Black else TvTextPrimary,
                 fontWeight = FontWeight.Bold,
-                fontSize = 17.sp
+                fontSize = 18.sp
             )
         )
     }
@@ -176,16 +186,18 @@ private fun TvCalendarBadge(
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isFocused by interactionSource.collectIsFocusedAsState()
+    val isPressed by interactionSource.collectIsPressedAsState()
+    val isHighlighted = isFocused || isPressed
 
     Box(
         modifier = Modifier
-            .size(28.dp)
-            .clip(RoundedCornerShape(7.dp))
-            .background(if (isFocused) TvFocusGold else Color(0xFF1E2330))
+            .size(36.dp)
+            .clip(RoundedCornerShape(8.dp))
+            .background(if (isHighlighted) TvFocusGold else Color(0xFF1E2330))
             .border(
-                width = if (isFocused) 2.dp else 1.dp,
-                color = if (isFocused) TvFocusGold else Color(0xFF333E56),
-                shape = RoundedCornerShape(7.dp)
+                width = if (isHighlighted) 2.dp else 1.dp,
+                color = if (isHighlighted) TvFocusGold else Color(0xFF333E56),
+                shape = RoundedCornerShape(8.dp)
             )
             .focusable(interactionSource = interactionSource)
             .clickable(interactionSource = interactionSource, indication = null) { onClick() },
@@ -198,9 +210,9 @@ private fun TvCalendarBadge(
             Text(
                 text = day,
                 style = MaterialTheme.typography.labelSmall.copy(
-                    color = if (isFocused) Color.Black else TvTextPrimary,
+                    color = if (isHighlighted) Color.Black else TvTextPrimary,
                     fontWeight = FontWeight.Black,
-                    fontSize = 11.sp
+                    fontSize = 12.sp
                 )
             )
         }

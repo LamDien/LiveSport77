@@ -1,6 +1,7 @@
 package com.livesport77.tv.ui.components
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -39,6 +40,7 @@ fun MatchItemCard(
     modifier: Modifier = Modifier
 ) {
     TvFocusCard(
+        isSelected = isSelected,
         onClick = onSelect,
         contentPadding = PaddingValues(horizontal = 12.dp, vertical = 9.dp),
         modifier = modifier.fillMaxWidth()
@@ -202,18 +204,19 @@ fun MatchItemCard(
 
             Spacer(modifier = Modifier.width(8.dp))
 
-            // 3. RIGHT: STAR FAVORITE ICON
+            // 3. RIGHT: STAR FAVORITE BUTTON (Touch-friendly target)
             Box(
                 modifier = Modifier
-                    .width(22.dp)
-                    .height(22.dp),
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .clickable(enabled = onFavoriteClick != null) { onFavoriteClick?.invoke() },
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = if (isFavorite) "★" else "☆",
                     style = MaterialTheme.typography.titleMedium.copy(
                         color = if (isFavorite) TvFocusGold else Color(0xFF64748B),
-                        fontSize = 15.sp,
+                        fontSize = 17.sp,
                         fontWeight = FontWeight.Bold
                     )
                 )
