@@ -20,14 +20,16 @@ Mở Terminal tại thư mục gốc của dự án:
 ./gradlew assembleDebug
 ```
 File APK sẽ được tạo tại:
-`app/build/outputs/apk/debug/app-debug.apk`
+`app/build/outputs/apk/debug/LiveSport77-v1.1.0-debug.apk`
 
 ### Build bản Release tối ưu dung lượng (Bật R8 Minify & Shrink):
 ```bash
 ./gradlew assembleRelease
 ```
-File APK tối ưu (dung lượng chỉ ~6MB - 8MB) sẽ được tạo tại:
-`app/build/outputs/apk/release/app-release.apk`
+File APK tối ưu (dung lượng chỉ ~2.1 MB, đạt ngưỡng `< 10 MB` trong `CONSTRAINTS.md`) sẽ được tạo tại:
+`app/build/outputs/apk/release/LiveSport77-v1.1.0-release.apk`
+
+> Xem thêm quy trình kiểm tra trước phát hành và rollback tại [RELEASE_CHECKLIST.md](RELEASE_CHECKLIST.md).
 
 ---
 
@@ -45,7 +47,7 @@ Có 3 cách thông dụng nhất:
 3. **Kết nối và cài đặt từ máy tính:**
    ```bash
    adb connect 192.168.1.50:5555
-   adb install -r app/build/outputs/apk/debug/app-debug.apk
+   adb install -r app/build/outputs/apk/release/LiveSport77-v1.1.0-release.apk
    ```
 4. Trên TV sẽ xuất hiện biểu tượng **LiveSport77 TV** trong danh sách ứng dụng trang chủ (Leanback Launcher).
 

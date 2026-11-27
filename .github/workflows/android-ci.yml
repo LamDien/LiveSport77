@@ -41,6 +41,13 @@ jobs:
           python3 scripts/verify_project.py
           python3 -m py_compile scripts/tv_remote_server.py
 
+      - name: Secret hygiene check
+        run: |
+          if git ls-files keystore.properties '*.jks' '*.keystore' | grep -q .; then
+            echo "ERROR: Signing secrets must never be tracked in git!"
+            exit 1
+          fi
+
       - name: Run unit tests and build APKs
         run: ./gradlew testDebugUnitTest assembleDebug assembleRelease
 
